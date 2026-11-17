@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "profile": {
+    "name": "Demo Student",
+    "headline": "Junior Software Developer",
+    "email": "alex@example.com",
+    "phone": "+358 40 123 4567",
+    "location": "Helsinki, Finland",
+    "website": "https://example.com",
+    "summary": "Curious software developer focused on useful, accessible web applications. I enjoy collaborating with teams and improving products through user feedback."
+  },
+  "experience": [
+    {
+      "id": "demo-work-1",
+      "role": "Web Development Intern",
+      "organization": "Sample Tech Ltd",
+      "location": "Helsinki",
+      "start": "Jun 2025",
+      "end": "Aug 2025",
+      "details": "Built reusable interface components\nHelped test and improve accessibility",
+      "include": true
+    }
+  ],
+  "education": [
+    {
+      "id": "demo-school-1",
+      "qualification": "B.Eng. Information Technology",
+      "organization": "Example University",
+      "location": "Espoo",
+      "start": "2024",
+      "end": "Present",
+      "details": "Web development, databases and software projects",
+      "include": true
+    }
+  ],
+  "projects": [
+    {
+      "id": "demo-project-1",
+      "name": "Community Events App",
+      "link": "https://example.com",
+      "details": "Designed and built an event discovery prototype in a four-person team.",
+      "include": true
+    }
+  ],
+  "skills": [
+    {
+      "id": "demo-skill-0",
+      "name": "JavaScript",
+      "include": true
+    },
+    {
+      "id": "demo-skill-1",
+      "name": "HTML & CSS",
+      "include": true
+    },
+    {
+      "id": "demo-skill-2",
+      "name": "Git & GitHub",
+      "include": true
+    },
+    {
+      "id": "demo-skill-3",
+      "name": "Teamwork",
+      "include": true
+    }
+  ],
+  "languages": [
+    {
+      "id": "demo-language-1",
+      "name": "English",
+      "level": "Professional",
+      "include": true
+    }
+  ],
+  "certificates": [
+    {
+      "id": "id-1792741104680-yjhckx3vyh",
+      "include": true,
+      "name": "Testing Basics",
+      "issuer": "",
+      "year": ""
+    }
+  ],
+  "settings": {
+    "template": "classic",
+    "accent": "#235d80"
+  }
+}

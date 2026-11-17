@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#112842">
+<meta name="referrer" content="no-referrer"><meta name="description" content="Create secure, reusable CVs for different jobs and companies.">
+<title>CV Studio v0.7 · My CV Workspace</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar no-print"><div class="brand"><span class="brand-mark">CV</span><div><strong>CV Studio</strong><small>Metropolia · Multidisciplinary Innovation Project</small></div></div><div class="account-bar"><span id="user-badge" hidden></span><button id="signout" class="btn btn-light" type="button" hidden>Log out</button></div></header>
+<section id="setup-screen" class="access-screen" hidden><div class="access-card"><h1>Connect the secure database</h1><p>This student project needs a Supabase project before user accounts and saved CVs can work. Follow <code>docs/SETUP_SUPABASE.md</code> and add your public project URL and publishable key in <code>src/config.js</code>.</p><p>Don't enter real personal data until the access-control tests have passed.</p></div></section>
+<section id="auth-screen" class="access-screen" hidden><div class="access-card"><div class="eyebrow">PRIVATE CV WORKSPACE</div><h1>One profile. Many tailored CVs.</h1><p>Create an account to securely reuse your information for different job applications.</p><div class="auth-tabs"><button type="button" id="tab-login" class="selected">Log in</button><button type="button" id="tab-signup">Create account</button></div><form id="auth-form"><label class="field"><span>Email</span><input id="auth-email" type="email" required autocomplete="email" placeholder="you@example.com"></label><label class="field"><span>Password</span><input id="auth-password" type="password" minlength="8" required autocomplete="current-password" placeholder="At least 8 characters"></label><button id="auth-submit" type="submit" class="btn btn-primary">Log in</button></form><p id="auth-message" class="hint" role="status" aria-live="polite"></p><button type="button" id="forgot-password" class="text-button">Forgot your password?</button><p class="small-note">Account data is saved to your private Supabase workspace. For security, refresh requires a new login.</p></div></section>
+<section id="recover-screen" class="access-screen" hidden>
+ <div class="access-card"><div class="eyebrow">ACCOUNT RECOVERY</div><h1>Reset your password</h1>
+ <p>Enter your account email. If an account exists, we will send instructions for choosing a new password.</p>
+ <form id="recover-form"><label class="field"><span>Email</span><input id="recover-email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+ <button type="submit" class="btn btn-primary full-width" data-busy-control="1">Send reset link</button></form>
+ <p id="recover-message" class="hint" role="status" aria-live="polite"></p>
+ <button id="recover-back" type="button" class="text-button">← Back to login</button></div>
+</section>
+<section id="reset-screen" class="access-screen" hidden>
+ <div class="access-card"><div class="eyebrow">SECURE ACCOUNT RECOVERY</div><h1>Choose a new password</h1>
+ <p>Your email link has been verified. Set a new password for your account.</p>
+ <form id="reset-form"><label class="field"><span>New password</span><input id="reset-password" type="password" required autocomplete="new-password" minlength="12" placeholder="At least 12 characters"></label>
+ <label class="field"><span>Confirm new password</span><input id="reset-confirm" type="password" required autocomplete="new-password" minlength="12"></label>
+ <button type="submit" class="btn btn-primary full-width" data-busy-control="1">Update password</button></form>
+ <p id="reset-message" class="hint" role="status" aria-live="polite"></p></div>
+</section>
+<div id="workspace" class="app-shell" hidden>
+ <aside class="editor-pane no-print">
+  <div class="workspace-heading"><div class="eyebrow">YOUR PRIVATE WORKSPACE</div><h1 id="pane-heading">My Profile</h1><p id="pane-subtitle">Save your details once and reuse them in all your CVs.</p></div>
+  <nav class="workspace-nav" aria-label="Workspace navigation"><button id="nav-dashboard" class="btn" type="button">Overview</button><button id="nav-profile" class="btn btn-primary" type="button">My Profile</button><button id="nav-cvs" class="btn" type="button">My CVs</button><button id="nav-ai" class="btn" type="button">✦ AI Builder</button><button id="nav-account" class="btn" type="button">Account</button></nav>
+  <p class="saved" id="save-status" aria-live="polite"></p>
+  <div id="dashboard-panel" hidden></div><div id="profile-panel"></div><div id="cvs-panel" hidden></div><div id="variant-panel" hidden></div><div id="ai-panel" hidden></div><div id="account-panel" hidden></div>
+  <p class="footer-note">Account data is saved to Supabase and protected by database Row Level Security. Verify access controls before inviting real users.</p>
+ </aside>
+ <main id="preview-pane" class="preview-pane"><div class="preview-toolbar no-print"><div><div class="eyebrow">LIVE PREVIEW</div><h2 id="preview-title">Your CV</h2></div><div class="preview-options"><button id="export-pdf" class="btn btn-primary" type="button">Save PDF</button><button id="export-txt" class="btn" type="button">TXT</button><button id="export-json" class="btn" type="button">JSON</button></div></div><div id="preview" class="preview-stage"></div><p class="preview-help no-print">To export PDF, choose <strong>Save as PDF</strong> in your browser's print dialog. CV information is not sent to a separate PDF service.</p></main>
+</div>
+<dialog id="new-cv-dialog" class="new-cv-dialog no-print" aria-labelledby="new-cv-heading">
+ <form id="new-cv-form">
+  <div class="eyebrow">NEW APPLICATION</div>
+  <h2 id="new-cv-heading">Create a tailored CV</h2>
+  <p>We’ll reuse your saved contact details, education, and work history. Choose what to include next.</p>
+  <label class="field"><span>CV name</span><input type="text" name="title" maxlength="120" required placeholder="e.g. Junior Developer CV"></label>
+  <label class="field"><span>Company</span><input type="text" name="company" maxlength="120" placeholder="e.g. Nokia"></label>
+  <label class="field"><span>Job title</span><input type="text" name="target_role" maxlength="120" placeholder="e.g. Software Developer"></label>
+  <div class="actions"><button id="cancel-new-cv" type="button" class="btn">Cancel</button><button class="btn btn-primary" type="submit">Create my CV</button></div>
+ </form>
+</dialog>
+<script type="module" src="src/app.js"></script>
+</body></html>
