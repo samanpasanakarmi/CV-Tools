@@ -1,6 +1,6 @@
-import { SECTIONS, blankCv, normalizeCv, createItem, moveItem, escapeHtml as esc, cvAsText, isIsoDate, displayDate, validateExperience, safePhoto, TEMPLATES, PHOTO_TEMPLATES } from './model.js';
+import { SECTIONS, blankCv, normalizeCv, createItem, moveItem, escapeHtml as esc, cvAsText, isIsoDate, displayDate, validateExperience, safePhoto, TEMPLATES, PHOTO_TEMPLATES, makeId, CUSTOM_FIELD_LIMIT, CUSTOM_LABEL_LIMIT, CUSTOM_VALUE_LIMIT } from './model.js';
 import { renderResume } from './preview.js';
-import { newVariant, normalizeVariant, composeCv, toggleSelection } from './workspace.js';
+import { newVariant, normalizeVariant, composeCv, toggleSelection, createAutosave } from './workspace.js';
 import { CloudApi } from './api.js';
 import { CLOUD_CONFIG } from './config.js';
 import { appRedirectUrl, safeErrorMessage } from './auth-flow.js';
@@ -23,7 +23,7 @@ const keys = [ ['name','Full name'], ['email','Email'],['phone','Phone number'],
 const field = (name,label,value,attrs={},multi=false) => {
   const props=Object.entries(attrs).map(([k,v])=>`data-${k}="${esc(v)}"`).join(' ');
   const safe=esc(value??'');
-  return `<label class="field"><span>${esc(label)}</span>${multi?`<textarea ${props} rows="3" placeholder="${esc(label)}">${safe}</textarea>`:`<input ${props} type="text" value="${safe}" placeholder="${esc(label)}" maxlength="500">`}</label>`;
+  return `<label class="field"><span>${esc(label)}</span>${multi?`<textarea ${props} rows="3" maxlength="6000" placeholder="${esc(label)}">${safe}</textarea>`:`<input ${props} type="text" value="${safe}" placeholder="${esc(label)}" maxlength="${attrs.kind==='meta'?120:500}">`}</label>`;
 };
 function show(id) {for(const section of ['setup-screen','auth-screen','recover-screen','reset-screen','workspace'])el(section).hidden=(section!==id);}
 function notice(message,error=false) {const n=el('save-status');n.textContent=message;n.classList.toggle('error',error);}
@@ -35,6 +35,8 @@ function setBusy(value){
   el('signout').disabled=value;
 }
 function clearPrivateState(){
+  autosave.cancel();
+  saveIndicator('ready');
   master=blankCv();savedMaster=blankCv();variants=[];active=null;aiDraft=null;
   aiRequest={targetRole:'',company:'',jobDescription:'',template:'modern'};
   aiReview={title:'',headline:'',summary:'',included:{}};
@@ -44,6 +46,46 @@ function clearPrivateState(){
   el('new-cv-form').reset();el('new-cv-dialog').close();
 }
 
+function saveIndicator(state,detail=''){
+  const node=el('autosave-status');
+  node.dataset.state=state;
+  const messages={ready:'Automatic saving is on',unsaved:'Unsaved changes — saving soon…',saving:'Saving to your account…',saved:'All changes saved at '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}),blocked:'Not saved — '+detail,error:'Not saved — use Save now to retry. '+detail};
+  node.textContent=messages[state];
+}
+function validationError(message){const error=new Error(message);error.validation=true;return error;}
+const autosave=createAutosave({
+  read:()=>{
+    if(dirtyMaster && screen==='profile')return {kind:'profile',snapshot:structuredClone(master)};
+    if(dirtyCv && screen==='editor' && active)return {kind:'cv',snapshot:structuredClone(active)};
+    return null;
+  },
+  write:async ({kind,snapshot})=>{
+    if(kind==='profile'){
+      const error=validateExperience(snapshot.experience);
+      if(error)throw validationError(error);
+      await api.saveMaster(snapshot);
+      savedMaster=structuredClone(snapshot);
+      dirtyMaster=JSON.stringify(master)!==JSON.stringify(snapshot);
+    }else{
+      if(!snapshot.title.trim() || snapshot.title.length>120)throw validationError('Enter a CV name (1–120 characters).');
+      const saved=normalizeVariant(await api.updateCv(snapshot));
+      variants=variants.map(x=>x.id===saved.id?structuredClone(saved):x);
+      // Do not overwrite edits made while the request was in flight.
+      if(active?.id===snapshot.id && JSON.stringify(active)===JSON.stringify(snapshot))dirtyCv=false;
+    }
+  },
+  onStatus:saveIndicator,
+  canRun:()=>!busy && !el('workspace').hidden && !!api.userId
+});
+function markDirty(kind){
+  if(kind==='profile')dirtyMaster=true;else dirtyCv=true;
+  autosave.schedule();
+}
+async function saveBeforeLeaving(){
+  if(!dirtyMaster&&!dirtyCv)return true;
+  setBusy(true);
+  try{return await autosave.flush();}finally{setBusy(false);}
+}
 function experienceField(item,key,label){
   const date=item[key]||'';
   const isPresent=key==='end' && date==='Present';
@@ -70,7 +112,7 @@ async function preparePhoto(file){
   } finally{URL.revokeObjectURL(url);}
 }
 function renderProfile(){
-  let html=`<p class="tip">This is your reusable master profile. Name, phone, address, and work history live here, not in individual CV copies.</p><div class="actions"><button data-action="save-master" data-busy-control="1" type="button" class="btn btn-primary">Save my profile</button></div><section class="form-section"><div class="form-section-header"><div><span class="step-label">01</span><h3>Personal information</h3></div></div><div class="field-grid">`;
+  let html=`<p class="tip">This is your reusable master profile. Name, phone, address, and work history live here, not in individual CV copies.</p><div class="actions"><button data-action="save-master" data-busy-control="1" type="button" class="btn btn-primary">Save now</button></div><section class="form-section"><div class="form-section-header"><div><span class="step-label">01</span><h3>Personal information</h3></div></div><div class="field-grid">`;
   html+=keys.map(([key,label,multi])=>field(key,label,master.profile[key],{kind:'profile',key},multi)).join('');
   html+='</div></section>';
   html+=`<section class="form-section photo-form"><div class="form-section-header"><div><span class="step-label">02</span><h3>Optional profile photo</h3><small>Only shown in photo-enabled CV templates</small></div></div><div class="photo-settings">${safePhoto(master.profile.photo)?`<img class="photo-thumb" src="${esc(master.profile.photo)}" alt="Your uploaded profile photo">`:'<div class="photo-empty">No photo uploaded</div>'}<div><label class="field"><span>Upload PNG, JPEG or WebP (max 4 MB)</span><input type="file" data-kind="photo-file" accept="image/png,image/jpeg,image/webp"></label><p class="field-help">Photo is cropped and resized on your device. Stored in your private profile, not a public photo link.</p>${safePhoto(master.profile.photo)?'<button class="btn btn-small" data-action="remove-photo" type="button">Remove picture</button>':''}</div></div></section>`;
@@ -158,7 +200,7 @@ function renderVariants(){
 function renderVariant(){
   if(!active){el('variant-panel').innerHTML='';return;}
   const c=active.document;
-  let html=`<div class="actions"><button data-action="back" class="btn" type="button">← My CVs</button><button data-action="save-cv" data-busy-control="1" class="btn btn-primary" type="button">Save this CV</button></div><p class="tip">Your contact details automatically reuse My Profile. Edit the title, employer, targeted role and select which saved entries should appear.</p><section class="form-section"><div class="form-section-header"><div><h3>Target job</h3></div></div><div class="field-grid">`;
+  let html=`<div class="actions"><button data-action="back" class="btn" type="button">← My CVs</button><button data-action="save-cv" data-busy-control="1" class="btn btn-primary" type="button">Save now</button></div><p class="tip">Your contact details automatically reuse My Profile. Edit the title, employer, targeted role and select which saved entries should appear.</p><section class="form-section"><div class="form-section-header"><div><h3>Target job</h3></div></div><div class="field-grid">`;
   html+=field('title','CV title',active.title,{kind:'meta',key:'title'});
   html+=field('company','Company name',active.company,{kind:'meta',key:'company'});
   html+=field('target_role','Position applying for',active.target_role,{kind:'meta',key:'target_role'});
@@ -185,6 +227,11 @@ function renderVariant(){
     }
     html+='</section>';
   }
+  html+=`<section class="form-section"><div class="form-section-header"><div><h3>Custom fields</h3><small>Only for this CV · up to ${CUSTOM_FIELD_LIMIT}</small></div><button type="button" class="btn btn-small btn-add" data-action="add-custom" ${c.customFields.length>=CUSTOM_FIELD_LIMIT?'disabled':''}>+ Add custom field</button></div><p class="field-help">Add any heading and text, for example Volunteering, Driving licence, Awards or Interests. Only completed fields appear in the CV.</p>`;
+  for(const item of c.customFields){
+    html+=`<div class="entry-card"><div class="entry-card-header"><strong>Custom field</strong><button type="button" class="btn btn-small remove" data-action="remove-custom" data-id="${esc(item.id)}">Remove</button></div><div class="field-grid"><label class="field"><span>Heading</span><input type="text" maxlength="${CUSTOM_LABEL_LIMIT}" data-kind="custom" data-id="${esc(item.id)}" data-key="label" value="${esc(item.label)}" placeholder="e.g. Driving licence"></label><label class="field"><span>Details</span><textarea rows="3" maxlength="${CUSTOM_VALUE_LIMIT}" data-kind="custom" data-id="${esc(item.id)}" data-key="value" placeholder="e.g. Category B">${esc(item.value)}</textarea></label></div></div>`;
+  }
+  html+='</section>';
   el('variant-panel').innerHTML=html;
 }
 function getPreviewCv(){
@@ -200,6 +247,7 @@ function renderUI(){
   const isDashboard=screen==='dashboard',isProfile=screen==='profile',isCvs=screen==='cvs',isEditor=screen==='editor',isAccount=screen==='account';
   el('dashboard-panel').hidden=!isDashboard;el('profile-panel').hidden=!isProfile;el('cvs-panel').hidden=!isCvs;el('variant-panel').hidden=!isEditor;el('account-panel').hidden=!isAccount;
   const isAi=screen==='ai';el('ai-panel').hidden=!isAi;
+  el('autosave-status').hidden=!(isProfile||isEditor);
   const withPreview=isProfile||isEditor||(isAi&&!!aiDraft);
   for(const id of ['export-pdf','export-txt','export-json'])el(id).disabled=(isAi&&!!aiDraft);el('preview-pane').hidden=!withPreview;el('workspace').classList.toggle('single-column',!withPreview);
   el('pane-heading').textContent=isDashboard?'Overview':isProfile?'My Profile':isCvs?'My CVs':isAccount?'Account & privacy':isAi?'AI Smart CV Builder':'Edit tailored CV';
@@ -207,21 +255,22 @@ function renderUI(){
   for(const [key,selected] of [['dashboard',isDashboard],['profile',isProfile],['cvs',isCvs||isEditor],['ai',isAi],['account',isAccount]])el(`nav-${key}`).className='btn '+(selected?'btn-primary':'');
   if(isDashboard)renderDashboard();if(isProfile)renderProfile();if(isCvs)renderVariants();if(isEditor)renderVariant();if(isAccount)renderAccount();if(isAi)renderAi();renderPreview();
 }
-function changePage(target){
-   if(busy || (target==='ai' && !AI_ENABLED))return;
-  if(dirtyMaster&&screen==='profile'){
-    if(!confirm('Discard unsaved profile edits?'))return;
-    master=structuredClone(savedMaster);dirtyMaster=false;
+async function changePage(target){
+  if(busy || target===screen || (target==='ai' && !AI_ENABLED))return;
+  if(!await saveBeforeLeaving()){
+    if(!confirm('Your latest changes could not be saved. Discard unsaved edits and leave this page?'))return;
+    if(dirtyMaster)master=structuredClone(savedMaster);
+    dirtyMaster=false;dirtyCv=false;
   }
-  if(dirtyCv&&screen==='editor'&&!confirm('You have unsaved CV edits. Continue without saving?'))return;
+  autosave.cancel();
   if(target!=='editor')active=null;
-  screen=target;notice('');renderUI();
+  screen=target;notice('');saveIndicator('ready');renderUI();
 }
 async function reloadData(){
   master=normalizeCv({...(await api.getMaster()||blankCv()),version:1});
   savedMaster=structuredClone(master);
   variants=(await api.listCvs()).map(normalizeVariant);
-  dirtyMaster=false;dirtyCv=false;active=null;aiDraft=null;screen='dashboard';renderUI();
+  dirtyMaster=false;dirtyCv=false;active=null;aiDraft=null;screen='dashboard';saveIndicator('ready');renderUI();
 }
 async function beginSession(){
   master=blankCv();variants=[];active=null;aiDraft=null;dirtyMaster=false;dirtyCv=false;
@@ -288,7 +337,7 @@ el('reset-form').addEventListener('submit',async event=>{
 });
 el('signout').addEventListener('click',async()=>{
   if(busy)return;
-  if((dirtyMaster||dirtyCv)&&!confirm('You have unsaved changes. Sign out anyway?'))return;
+  if(!await saveBeforeLeaving() && !confirm('Your latest changes could not be saved. Discard unsaved edits and sign out?'))return;
   setBusy(true);
   const previousApi=api;
   clearPrivateState();
@@ -394,13 +443,13 @@ el('profile-panel').addEventListener('change',async(ev)=>{
  if(t.dataset.kind==='photo-file'){
    if(!t.files?.[0])return;
    setBusy(true);
-   try { master.profile.photo=await preparePhoto(t.files[0]);dirtyMaster=true;renderUI();notice('Photo prepared. Save your profile to upload it securely.'); }
+   try { master.profile.photo=await preparePhoto(t.files[0]);markDirty('profile');renderUI();notice('Photo prepared for automatic saving.'); }
    catch(e){notice(errString(e),true);t.value='';}finally{setBusy(false);}
    return;
  }
  if(t.dataset.kind==='present'){
    const item=master.experience.find(x=>x.id===t.dataset.id);
-   if(item){item.end=t.checked?'Present':'';dirtyMaster=true;renderUI();notice('Unsaved profile changes');}
+   if(item){item.end=t.checked?'Present':'';markDirty('profile');renderUI();}
  }
 });
 el('profile-panel').addEventListener('input',(ev)=>{
@@ -409,23 +458,22 @@ el('profile-panel').addEventListener('input',(ev)=>{
  else if(t.dataset.kind==='item'&&SECTIONS[t.dataset.section]?.fields.some(([k])=>k===t.dataset.key)){
   const item=master[t.dataset.section].find(x=>x.id===t.dataset.id);if(item)item[t.dataset.key]=t.value;
  }else return;
- dirtyMaster=true;notice('Unsaved profile changes');renderPreview();
+ markDirty('profile');renderPreview();
 });
 el('profile-panel').addEventListener('click',async(ev)=>{
  const b=ev.target.closest('button[data-action]');if(!b||busy)return;
  const {action,section,id}=b.dataset;
- if(action==='remove-photo'){master.profile.photo='';dirtyMaster=true;renderUI();notice('Photo removed. Save your profile to confirm.');return;}
+ if(action==='remove-photo'){master.profile.photo='';markDirty('profile');renderUI();return;}
  if(action==='save-master'){
-  const dateError=validateExperience(master.experience);if(dateError){notice(dateError,true);return;}
-  setBusy(true);notice('Saving profile…');try{await api.saveMaster(master);savedMaster=structuredClone(master);dirtyMaster=false;notice('✓ Profile saved to your account.');}catch(e){notice(errString(e),true);}finally{setBusy(false);}return;
+  setBusy(true);try{await autosave.flush();}finally{setBusy(false);}return;
  }
  if(SECTIONS[section]){
-  if(action==='add') master[section].push(createItem(section));
+  if(action==='add'){if(master[section].length>=100){notice('Maximum 100 entries per profile section.',true);return;}master[section].push(createItem(section));}
   else if(action==='remove'){if(!confirm('Remove this profile entry? Existing CVs will no longer be able to display it.'))return;master[section]=master[section].filter(x=>x.id!==id);}
   else if(action==='up'||action==='down')moveItem(master,section,id,action==='up'?-1:1);
-  dirtyMaster=true;
+  markDirty('profile');
  }else return;
- notice('Unsaved profile changes');renderUI();
+ renderUI();
 });
 // Both overview and My CVs use the same data operations.
 async function handleCvAction(ev){
@@ -439,10 +487,10 @@ async function handleCvAction(ev){
   const draft=newVariant(master,{title:`${current.title} (copy)`.slice(0,120),company:current.company,target_role:current.target_role});
   draft.document=structuredClone(current.document);
   setBusy(true);
-  try{const row=await api.createCv(draft);variants.unshift(normalizeVariant(row));active=normalizeVariant(row);screen='editor';dirtyCv=false;renderUI();notice('CV duplicated. Change the company or role and save your version.');}
+  try{const row=await api.createCv(draft);variants.unshift(normalizeVariant(row));active=normalizeVariant(row);screen='editor';dirtyCv=false;saveIndicator('ready');renderUI();notice('CV duplicated. Change the company or role and save your version.');}
   catch(e){notice(errString(e),true);}finally{setBusy(false);}return;
  }
- if(action==='open'&&current){if(dirtyMaster&&!confirm('You have unsaved profile edits. Continue?'))return;active=structuredClone(current);screen='editor';dirtyCv=false;notice('');renderUI();return;}
+ if(action==='open'&&current){if(dirtyMaster&&!confirm('You have unsaved profile edits. Continue?'))return;active=structuredClone(current);screen='editor';dirtyCv=false;notice('');saveIndicator('ready');renderUI();return;}
  if(action==='delete'&&current){if(!confirm(`Permanently delete "${current.title}"?`))return;
   setBusy(true);try{await api.deleteCv(id);variants=variants.filter(x=>x.id!==id);renderUI();notice('CV deleted.');}catch(e){notice(errString(e),true);}finally{setBusy(false);}
  }
@@ -457,7 +505,7 @@ el('new-cv-form').addEventListener('submit',async(ev)=>{
  try{
    if(dirtyMaster){const dateError=validateExperience(master.experience);if(dateError)throw new Error(dateError);await api.saveMaster(master);savedMaster=structuredClone(master);dirtyMaster=false;}
    const row=await api.createCv(draft);variants.unshift(normalizeVariant(row));active=normalizeVariant(row);screen='editor';dirtyCv=false;
-   el('new-cv-dialog').close();renderUI();notice('New CV created using your reusable profile.');
+   el('new-cv-dialog').close();saveIndicator('ready');renderUI();notice('New CV created using your reusable profile.');
  }catch(e){notice(errString(e),true);}finally{setBusy(false);}
 });
 el('cancel-new-cv').addEventListener('click',()=>el('new-cv-dialog').close());
@@ -468,8 +516,12 @@ el('variant-panel').addEventListener('input',(ev)=>{
  if(t.dataset.kind==='meta'&&['title','company','target_role'].includes(t.dataset.key))active[t.dataset.key]=t.value;
  else if(t.dataset.kind==='variant'&&['headline','summary'].includes(t.dataset.key))active.document[t.dataset.key]=t.value;
  else if(t.dataset.kind==='accent')active.document.accent=t.value;
+ else if(t.dataset.kind==='custom'&&['label','value'].includes(t.dataset.key)){
+   const item=active.document.customFields.find(x=>x.id===t.dataset.id);if(!item)return;
+   item[t.dataset.key]=t.value.slice(0,t.dataset.key==='label'?CUSTOM_LABEL_LIMIT:CUSTOM_VALUE_LIMIT);
+ }
  else return;
- dirtyCv=true;notice('Unsaved CV changes');renderPreview();
+ markDirty('cv');renderPreview();
 });
 el('variant-panel').addEventListener('change',(ev)=>{
  const t=ev.target;if(!active)return;
@@ -478,14 +530,22 @@ el('variant-panel').addEventListener('change',(ev)=>{
  else if(t.dataset.kind==='template'&&Object.hasOwn(TEMPLATES,t.value)){active.document.template=t.value;renderVariant();}
  else if(t.dataset.kind==='show-photo')active.document.showPhoto=t.checked;
  else return;
- dirtyCv=true;notice('Unsaved CV changes');renderPreview();
+ markDirty('cv');renderPreview();
 });
 el('variant-panel').addEventListener('click',async(ev)=>{
  const b=ev.target.closest('button[data-action]');if(!b||busy)return;
  if(b.dataset.action==='back'){changePage('cvs');return;}
- if(b.dataset.action==='save-cv'){
-  if(!active?.title.trim()){notice('Add a name for this CV before saving.',true);return;}
-  setBusy(true);try{const row=await api.updateCv(active);active=normalizeVariant(row);variants=variants.map(x=>x.id===active.id?structuredClone(active):x);dirtyCv=false;notice('✓ CV saved in your private account.');}catch(e){notice(errString(e),true);}finally{setBusy(false);}
+ if(!active)return;
+ if(b.dataset.action==='add-custom' && active.document.customFields.length<CUSTOM_FIELD_LIMIT){
+   active.document.customFields.push({id:makeId(),label:'',value:''});
+   markDirty('cv');renderVariant();renderPreview();
+   const fields=el('variant-panel').querySelectorAll('[data-kind="custom"][data-key="label"]');fields[fields.length-1]?.focus();
+ }else if(b.dataset.action==='remove-custom'){
+   if(!confirm('Remove this custom field from this CV?'))return;
+   active.document.customFields=active.document.customFields.filter(x=>x.id!==b.dataset.id);
+   markDirty('cv');renderVariant();renderPreview();
+ }else if(b.dataset.action==='save-cv'){
+   setBusy(true);try{await autosave.flush();}finally{setBusy(false);}
  }
 });
 el('export-pdf').addEventListener('click',()=>{if(dirtyMaster||dirtyCv)notice('Warning: exported preview includes unsaved changes.');window.print();});
