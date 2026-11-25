@@ -22,7 +22,17 @@ export const SECTIONS = {
   ] }
 };
 const profileFields = ['name','headline','email','phone','address','location','website','summary','photo'];
-export const TEMPLATES = Object.freeze({modern:'Modern',classic:'Classic',minimal:'Minimal',executive:'Executive', 'photo-sidebar':'Photo sidebar', 'photo-header':'Photo header'});
+export const TEMPLATES = Object.freeze({
+  modern:'Modern',
+  classic:'Classic',
+  minimal:'Minimal',
+  executive:'Executive',
+  'photo-sidebar':'Photo sidebar',
+  'photo-header':'Photo header',
+  'ats-clean':'ATS Clean',
+  nordic:'Nordic Professional',
+  'two-column':'Modern Two Column'
+});
 export const PHOTO_TEMPLATES = Object.freeze(['photo-sidebar','photo-header']);
 export function safePhoto(value) { return typeof value==='string' && value.length<=300000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : ''; }
 export function isIsoDate(value) {
