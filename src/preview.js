@@ -34,8 +34,28 @@ export function renderResume(cv) {
     sections+=`<section class="cv-section"><h2>${e(meta.label)}</h2><div class="cv-section-body ${section==='skills'||section==='languages'?'cv-pills':''}">${items.map(i=>itemHtml(section,i)).join('')}</div></section>`;
   }
   const identity=`<div class="cv-identity"><h1>${e(p.name||'Your Name')}</h1><div class="cv-headline">${e(p.headline||'Your professional title')}</div><div class="cv-contact">${contacts.join('')}</div></div>`;
+  const empty = '<div class="cv-empty">Fill in your profile to build a professional CV.</div>';
+  if (template === 'two-column') {
+    // Reuse the existing CV data and item renderer; only the visual grouping changes.
+    const sidebarSections = ['skills', 'languages', 'certificates'];
+    const summaryHtml = p.summary
+      ? `<section class="cv-section"><h2>Profile</h2><p class="cv-summary">${nl(p.summary)}</p></section>` : '';
+    let sidebar = '';
+    let main = summaryHtml;
+    for (const [section, meta] of Object.entries(SECTIONS)) {
+      const items = selectedItems(cv, section).filter(item=>meta.fields.some(([key])=>Boolean(item[key]?.trim())));
+      if (!items.length) continue;
+      const html = `<section class="cv-section"><h2>${e(meta.label)}</h2><div class="cv-section-body ${section==='skills'||section==='languages'?'cv-pills':''}">${items.map(i=>itemHtml(section,i)).join('')}</div></section>`;
+      if (sidebarSections.includes(section)) sidebar += html;
+      else main += html;
+    }
+    return `<article class="cv-page two-column" style="--cv-accent:${e(cv.settings.accent)}">
+      <header class="cv-heading">${picture}${identity}</header>
+      <div class="cv-two-column-body"><aside class="cv-sidebar">${sidebar || empty}</aside><main class="cv-main">${main || empty}</main></div>
+    </article>`;
+  }
   return `<article class="cv-page ${e(template)}" style="--cv-accent:${e(cv.settings.accent)}">
     <header class="cv-heading">${picture}${identity}</header>
-    <div class="cv-main">${sections||'<div class="cv-empty">Fill in your profile to build a professional CV.</div>'}</div>
+    <div class="cv-main">${sections||empty}</div>
   </article>`;
 }
