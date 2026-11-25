@@ -13,6 +13,7 @@ export class CloudApi {
     this.fetcher = fetchImpl;
     this.session = null;
     this.refreshPending = null;
+    this.sessionGeneration = 0;
   }
   isConfigured() {
     try {
@@ -23,19 +24,23 @@ export class CloudApi {
     } catch { return false; }
   }
   async raw(path, { method = 'GET', data, authorized = false, prefer, token } = {}) {
+    const generation=this.sessionGeneration;
+    const assertCurrent=()=>{if(generation!==this.sessionGeneration)throw new Error('Session changed. Please sign in again.');};
     const headers = { apikey: this.key, Accept: 'application/json' };
     if (data !== undefined) headers['Content-Type'] = 'application/json';
     if (prefer) headers.Prefer = prefer;
     if (authorized) {
       await this.ensureSession();
+      assertCurrent();
       headers.Authorization = `Bearer ${this.session.access_token}`;
     } else if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
     const response = await this.fetcher(`${this.url}${path}`, {
-      method, headers, body: data === undefined ? undefined : JSON.stringify(data), cache: 'no-store'
+      method, headers, body: data === undefined ? undefined : JSON.stringify(data), cache: 'no-store', signal: AbortSignal.timeout(40000)
     });
     const content = await response.text();
+    assertCurrent();
     let body = null;
     try { body = content ? JSON.parse(content) : null; } catch { body = null; }
     if (!response.ok) {
@@ -84,22 +89,28 @@ export class CloudApi {
     if (Date.now() < this.session.expires_at - 60000) return;
     if (!this.session.refresh_token) throw new Error('Session expired. Please sign in again.');
     if (!this.refreshPending) {
+      const generation=this.sessionGeneration;
       this.refreshPending = this.raw('/auth/v1/token?grant_type=refresh_token', {
         method: 'POST', data: { refresh_token: this.session.refresh_token }
-      }).then(response => this.setSession(response)).catch(error => {
-        this.session = null; throw error;
-      }).finally(() => { this.refreshPending = null; });
+      }).then(response => {
+        if(generation!==this.sessionGeneration)throw new Error('Session changed. Please sign in again.');
+        this.setSession(response);
+      }).catch(error => {
+        if(generation===this.sessionGeneration)this.session = null;
+        throw error;
+      }).finally(() => { if(generation===this.sessionGeneration)this.refreshPending = null; });
     }
     await this.refreshPending;
   }
   async signOut() {
     const token = this.session?.access_token;
+    this.sessionGeneration++;
     this.session = null;
     this.refreshPending = null;
     if (token) {
       try {
         await this.fetcher(`${this.url}/auth/v1/logout`, {
-          method: 'POST', headers: { apikey: this.key, Authorization: `Bearer ${token}` }, cache: 'no-store'
+          method: 'POST', headers: { apikey: this.key, Authorization: `Bearer ${token}` }, cache: 'no-store', signal: AbortSignal.timeout(5000)
         });
       } catch { /* Local logout still happens even if the network is unavailable. */ }
     }

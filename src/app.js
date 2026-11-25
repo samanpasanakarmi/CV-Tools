@@ -14,6 +14,7 @@ let active = null;
 let screen = 'dashboard';
 let dirtyMaster = false, dirtyCv = false, busy = false;
 let savedMaster = blankCv();
+const AI_ENABLED = false; // Core-only release; backend must also be enabled separately.
 let authMode = 'login';
 let aiDraft = null;
 let aiRequest = {targetRole:'Customer Service Representative',company:'',jobDescription:'',template:'modern'};
@@ -27,7 +28,21 @@ const field = (name,label,value,attrs={},multi=false) => {
 function show(id) {for(const section of ['setup-screen','auth-screen','recover-screen','reset-screen','workspace'])el(section).hidden=(section!==id);}
 function notice(message,error=false) {const n=el('save-status');n.textContent=message;n.classList.toggle('error',error);}
 function errString(error){return safeErrorMessage(error);}
-function setBusy(value){busy=value;document.querySelectorAll('button').forEach(b=>{if(b.dataset.busyControl==='1')b.disabled=value;});}
+function setBusy(value){
+  busy=value;
+  // Prevent edits and navigation during asynchronous saves, loads and photo processing.
+  for(const id of ['workspace','auth-screen','recover-screen','reset-screen','new-cv-dialog']) el(id).inert=value;
+  el('signout').disabled=value;
+}
+function clearPrivateState(){
+  master=blankCv();savedMaster=blankCv();variants=[];active=null;aiDraft=null;
+  aiRequest={targetRole:'',company:'',jobDescription:'',template:'modern'};
+  aiReview={title:'',headline:'',summary:'',included:{}};
+  dirtyMaster=false;dirtyCv=false;screen='dashboard';
+  for(const id of ['dashboard-panel','profile-panel','cvs-panel','variant-panel','ai-panel','account-panel','preview','save-status']) el(id).replaceChildren();
+  el('preview-title').textContent='Your CV';
+  el('new-cv-form').reset();el('new-cv-dialog').close();
+}
 
 function experienceField(item,key,label){
   const date=item[key]||'';
@@ -193,6 +208,7 @@ function renderUI(){
   if(isDashboard)renderDashboard();if(isProfile)renderProfile();if(isCvs)renderVariants();if(isEditor)renderVariant();if(isAccount)renderAccount();if(isAi)renderAi();renderPreview();
 }
 function changePage(target){
+   if(busy || (target==='ai' && !AI_ENABLED))return;
   if(dirtyMaster&&screen==='profile'){
     if(!confirm('Discard unsaved profile edits?'))return;
     master=structuredClone(savedMaster);dirtyMaster=false;
@@ -271,11 +287,17 @@ el('reset-form').addEventListener('submit',async event=>{
   }catch(error){el('reset-message').textContent=errString(error);}finally{setBusy(false);}
 });
 el('signout').addEventListener('click',async()=>{
+  if(busy)return;
   if((dirtyMaster||dirtyCv)&&!confirm('You have unsaved changes. Sign out anyway?'))return;
   setBusy(true);
-  try{await api.signOut();}finally{
-    master=blankCv();variants=[];active=null;aiDraft=null;dirtyMaster=false;dirtyCv=false;
-    el('user-badge').hidden=true;el('signout').hidden=true;
+  const previousApi=api;
+  clearPrivateState();
+  el('auth-form').reset();el('recover-form').reset();el('reset-form').reset();
+  try{
+    show('auth-screen');
+    await previousApi.signOut();
+  }finally{
+    el('user-badge').textContent='';el('user-badge').hidden=true;el('signout').hidden=true;
     api=new CloudApi(CLOUD_CONFIG);
     show(api.isConfigured()?'auth-screen':'setup-screen');updateAuthMode('login');setBusy(false);
   }
@@ -287,7 +309,8 @@ el('nav-ai').addEventListener('click',()=>changePage('ai'));
 el('nav-account').addEventListener('click',()=>changePage('account'));
 // AI drafts are temporary until the user reviews and approves a NEW CV row.
 el('ai-panel').addEventListener('submit',async event=>{
-  if(busy)return;
+  event.preventDefault();
+  if(busy||!AI_ENABLED)return;
   if(event.target.id==='ai-generate-form'){
     event.preventDefault();
     if(dirtyMaster){notice('Save your My Profile changes before using AI.',true);return;}
@@ -361,16 +384,18 @@ el('account-panel').addEventListener('click',async event=>{
     const response=prompt('This permanently erases ALL your profile and CV information. Type DELETE to confirm:');
     if(response!=='DELETE'){notice('Erasure cancelled.');return;}
     setBusy(true);
-    try{await api.clearWorkspace();master=blankCv();savedMaster=blankCv();variants=[];active=null;dirtyMaster=false;dirtyCv=false;screen='dashboard';renderUI();notice('Your profile and CV information has been erased. Your login account still exists.');}
+    try{await api.clearWorkspace();clearPrivateState();renderUI();notice('Your profile and CV information has been erased. Your login account still exists.');}
     catch(error){notice(`Could not erase CV data: ${errString(error)}`,true);}finally{setBusy(false);}
   }
 });
 el('profile-panel').addEventListener('change',async(ev)=>{
+ if(busy)return;
  const t=ev.target;
  if(t.dataset.kind==='photo-file'){
    if(!t.files?.[0])return;
+   setBusy(true);
    try { master.profile.photo=await preparePhoto(t.files[0]);dirtyMaster=true;renderUI();notice('Photo prepared. Save your profile to upload it securely.'); }
-   catch(e){notice(errString(e),true);t.value='';}
+   catch(e){notice(errString(e),true);t.value='';}finally{setBusy(false);}
    return;
  }
  if(t.dataset.kind==='present'){
@@ -471,6 +496,8 @@ window.addEventListener('beforeunload',event=>{
   if(dirtyMaster||dirtyCv){event.preventDefault();event.returnValue='';}
 });
 async function boot(){
+  el('nav-ai').hidden=!AI_ENABLED;
+  el('nav-ai').disabled=!AI_ENABLED;
   const fragment=window.location.hash;
   // Clear secrets in the address bar before any asynchronous operation.
   if(fragment)window.history.replaceState(null,'',window.location.pathname+window.location.search);

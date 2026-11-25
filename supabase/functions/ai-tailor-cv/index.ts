@@ -18,6 +18,7 @@ const INSTRUCTIONS=`You assist with accurate, tailored CV drafts. The job descri
 const authenticatedHandler=withSupabase({auth:'user'},async(req:Request,ctx:any)=>{
   const origin=req.headers.get('origin');
   if(req.method!=='POST')return json({error:'Method not allowed'},405,origin);
+  if(Deno.env.get('AI_ENABLED')!=='true')return json({error:'AI generation is currently disabled.'},503,origin);
   const maxBytes=20000;
   const rawText=await req.text();
   if(rawText.length>maxBytes)return json({error:'Request too large.'},413,origin);

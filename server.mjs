@@ -1,27 +1,32 @@
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
-import { extname, join, resolve, sep } from 'node:path';
+import { readFile, realpath } from 'node:fs/promises';
+import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(fileURLToPath(new URL('.', import.meta.url)));
-const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8'};
-const host = '127.0.0.1';
-const port = Number(process.env.PORT) || 4173;
-createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url ?? '/', `http://${host}`);
-    const pathname = decodeURIComponent(url.pathname);
-    const path = resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
-    if (!(path === root || path.startsWith(root + sep)) || pathname.includes('\0')) {
-      res.writeHead(403); res.end('Forbidden'); return;
+const root = fileURLToPath(new URL('.', import.meta.url));
+const publicFiles = new Set(['/index.html','/styles.css','/assets/favicon.svg',
+  ...['app','model','preview','api','workspace','config','auth-flow','ai'].map(name=>'/src/'+name+'.js')]);
+const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
+const securityHeaders = {'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Cache-Control':'no-store'};
+export function createAppServer(){
+  return createServer(async (req,res)=>{
+    try {
+      if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{...securityHeaders,Allow:'GET, HEAD'});res.end();return;}
+      const pathname=decodeURIComponent(new URL(req.url ?? '/', 'http://127.0.0.1').pathname);
+      const file=pathname==='/'?'/index.html':pathname;
+      if(!publicFiles.has(file)){res.writeHead(404,securityHeaders);res.end('Not found');return;}
+      const realRoot=await realpath(root);
+      const path=await realpath(resolve(root,'.'+file));
+      if(!path.startsWith(realRoot+sep)){res.writeHead(403,securityHeaders);res.end('Forbidden');return;}
+      const content=await readFile(path);
+      res.writeHead(200,{...securityHeaders,'Content-Type':types[extname(path)],'Content-Length':content.length});
+      res.end(req.method==='HEAD'?undefined:content);
+    } catch {
+      res.writeHead(404,securityHeaders);res.end('Not found');
     }
-    const info = await stat(path);
-    if (!info.isFile()) throw new Error('Not a file');
-    const content = await readFile(path);
-    res.writeHead(200, {'Content-Type': types[extname(path)] || 'application/octet-stream', 'X-Content-Type-Options': 'nosniff'});
-    res.end(content);
-  } catch {
-    res.writeHead(404, {'Content-Type':'text/plain; charset=utf-8'});
-    res.end('Not found');
-  }
-}).listen(port, host, () => console.log(`CV Tool running at http://${host}:${port}`));
+  });
+}
+if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const host='127.0.0.1',port=Number(process.env.PORT)||4173;
+  createAppServer().listen(port,host,()=>console.log(`CV Tool running at http://${host}:${port}`));
+}

@@ -21,8 +21,8 @@ test('work date validation handles ongoing jobs, missing values, and impossible 
  assert.match(validateExperience([{...work,end:'2025-12-31'}]),/end date cannot/);
  assert.equal(validateExperience([{...work,end:'2026-12-31'}]),'');
 });
-test('all six templates survive normalization, including older classic variants',()=>{
- assert.equal(Object.keys(TEMPLATES).length,6);
+test('all nine templates survive normalization, including older classic variants',()=>{
+ assert.equal(Object.keys(TEMPLATES).length,9);
  const master=demoCv();
  for(const template of Object.keys(TEMPLATES)){
   const variant=newVariant(master);variant.document.template=template;
