@@ -2,8 +2,9 @@
 // Only public web assets belong in dist/; private team docs and tests do not.
 import { mkdir, rm, copyFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(import.meta.dirname, '..');
+const root = fileURLToPath(new URL('../', import.meta.url));
 const out = join(root, 'dist');
 await rm(out, { recursive: true, force: true });
 await mkdir(join(out, 'src'), { recursive: true });
