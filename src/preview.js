@@ -1,4 +1,4 @@
-import { SECTIONS, selectedItems, escapeHtml as e, safeHref, displayDate, PHOTO_TEMPLATES, safePhoto, TEMPLATES } from './model.js';
+import { SECTIONS, selectedItems, escapeHtml as e, safeHref, displayDate, PHOTO_TEMPLATES, safePhoto, TEMPLATES, visibleCustomFields } from './model.js';
 const nl = value => e(value).replace(/\n/g,'<br>');
 const details = value => {
   if (!value?.trim()) return '';
@@ -33,6 +33,8 @@ export function renderResume(cv) {
     if(!items.length)continue;
     sections+=`<section class="cv-section"><h2>${e(meta.label)}</h2><div class="cv-section-body ${section==='skills'||section==='languages'?'cv-pills':''}">${items.map(i=>itemHtml(section,i)).join('')}</div></section>`;
   }
+  const custom=visibleCustomFields(cv.customFields).map(item=>`<section class="cv-section"><h2>${e(item.label.trim())}</h2><p class="cv-summary">${nl(item.value.trim())}</p></section>`).join('');
+  sections+=custom;
   const identity=`<div class="cv-identity"><h1>${e(p.name||'Your Name')}</h1><div class="cv-headline">${e(p.headline||'Your professional title')}</div><div class="cv-contact">${contacts.join('')}</div></div>`;
   const empty = '<div class="cv-empty">Fill in your profile to build a professional CV.</div>';
   if (template === 'two-column') {
@@ -49,6 +51,7 @@ export function renderResume(cv) {
       if (sidebarSections.includes(section)) sidebar += html;
       else main += html;
     }
+    main+=custom;
     return `<article class="cv-page two-column" style="--cv-accent:${e(cv.settings.accent)}">
       <header class="cv-heading">${picture}${identity}</header>
       <div class="cv-two-column-body"><aside class="cv-sidebar">${sidebar || empty}</aside><main class="cv-main">${main || empty}</main></div>

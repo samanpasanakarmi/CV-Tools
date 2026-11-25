@@ -55,9 +55,24 @@ export function validateExperience(entries){
  return '';
 }
 export function makeId() { return globalThis.crypto?.randomUUID?.() || `id-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+export const CUSTOM_FIELD_LIMIT = 20;
+export const CUSTOM_LABEL_LIMIT = 80;
+export const CUSTOM_VALUE_LIMIT = 2000;
+export function normalizeCustomFields(raw) {
+  const seen=new Set();
+  return (Array.isArray(raw)?raw:[]).filter(x=>x && typeof x==='object' && !Array.isArray(x)).slice(0,CUSTOM_FIELD_LIMIT).map(x=>{
+    let id=typeof x.id==='string'?x.id.slice(0,100):'';
+    if(!id || seen.has(id))id=makeId();
+    seen.add(id);
+    return {id,label:typeof x.label==='string'?x.label.slice(0,CUSTOM_LABEL_LIMIT):'',value:typeof x.value==='string'?x.value.slice(0,CUSTOM_VALUE_LIMIT):''};
+  });
+}
+export function visibleCustomFields(raw){
+  return normalizeCustomFields(raw).filter(x=>x.label.trim() && x.value.trim());
+}
 export function blankCv() {
   return {version:1, profile:Object.fromEntries(profileFields.map(key=>[key,''])),
-    experience:[], education:[], projects:[], skills:[], languages:[], certificates:[],
+    experience:[], education:[], projects:[], skills:[], languages:[], certificates:[], customFields:[],
     settings:{ template:'modern', accent:'#235d80' } };
 }
 export function demoCv() {
@@ -90,6 +105,7 @@ export function normalizeCv(raw) {
       return record;
     });
   }
+  clean.customFields=normalizeCustomFields(raw.customFields);
   clean.settings.template = Object.hasOwn(TEMPLATES,raw.settings?.template) ? raw.settings.template : 'modern';
   const accent = raw.settings?.accent;
   clean.settings.accent = typeof accent==='string' && /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#235d80';
@@ -128,5 +144,6 @@ export function cvAsText(cv) {
       lines.push('');
     }
   }
+  for(const item of visibleCustomFields(cv.customFields))lines.push(item.label.trim().toUpperCase(),item.value.trim(),'');
   return lines.join('\n').trim()+'\n';
 }

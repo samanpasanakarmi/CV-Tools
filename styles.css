@@ -178,3 +178,9 @@
   .cv-page.two-column .cv-sidebar { border-right: 1px solid #e0e7eb; border-bottom: 0; padding-right: 5mm; }
   .cv-page.two-column .cv-entry, .cv-page.two-column .cv-section h2 { break-inside: avoid; }
 }
+
+/* Cloud save feedback is separate from general workspace notices. */
+.autosave-status{font-size:12px;font-weight:650;padding:9px 12px;border:1px solid #dce8e2;border-radius:8px;background:#f3faf6;color:#237652;margin:14px 0 5px;overflow-wrap:anywhere}
+.autosave-status[data-state="unsaved"],.autosave-status[data-state="saving"]{background:#fff8e8;border-color:#eedcaa;color:#79550c}
+.autosave-status[data-state="blocked"],.autosave-status[data-state="error"]{background:#fff2f2;border-color:#efc6c9;color:#a12c3c}
+.autosave-status[hidden]{display:none}
