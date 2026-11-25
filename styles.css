@@ -184,3 +184,13 @@
 .autosave-status[data-state="unsaved"],.autosave-status[data-state="saving"]{background:#fff8e8;border-color:#eedcaa;color:#79550c}
 .autosave-status[data-state="blocked"],.autosave-status[data-state="error"]{background:#fff2f2;border-color:#efc6c9;color:#a12c3c}
 .autosave-status[hidden]{display:none}
+
+/* Accessible per-CV section ordering. */
+.section-order-list{list-style:decimal;margin:10px 0 16px;padding-left:28px;color:#435d70;font-size:12px}
+.section-order-row{padding:8px 10px;border:1px solid #dce6ed;border-radius:8px;margin-bottom:7px;background:#fbfcfd}
+.section-order-row::marker{color:#52758b;font-weight:700}
+.section-order-name{display:inline-block;max-width:calc(100% - 72px);overflow-wrap:anywhere;vertical-align:middle;font-weight:650}
+.section-order-row .icon-actions{display:inline-flex;float:right}
+.section-order-row .icon-actions button{width:30px;height:30px}
+.section-order-row{min-height:48px;display:list-item;align-content:center}
+.order-group-heading{font-size:12px;margin:15px 0 6px;color:#435d70}

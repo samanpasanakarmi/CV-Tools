@@ -1,4 +1,4 @@
-import { SECTIONS, blankCv, normalizeCv, createItem, moveItem, escapeHtml as esc, cvAsText, isIsoDate, displayDate, validateExperience, safePhoto, TEMPLATES, PHOTO_TEMPLATES, makeId, CUSTOM_FIELD_LIMIT, CUSTOM_LABEL_LIMIT, CUSTOM_VALUE_LIMIT } from './model.js';
+import { SECTIONS, blankCv, normalizeCv, createItem, moveItem, escapeHtml as esc, cvAsText, isIsoDate, displayDate, validateExperience, safePhoto, TEMPLATES, PHOTO_TEMPLATES, makeId, CUSTOM_FIELD_LIMIT, CUSTOM_LABEL_LIMIT, CUSTOM_VALUE_LIMIT, defaultSectionOrder, normalizeSectionOrder, sectionOrderGroups, moveSection } from './model.js';
 import { renderResume } from './preview.js';
 import { newVariant, normalizeVariant, composeCv, toggleSelection, createAutosave } from './workspace.js';
 import { CloudApi } from './api.js';
@@ -197,6 +197,32 @@ function renderVariants(){
   }
   el('cvs-panel').innerHTML=html;
 }
+function sectionLabel(doc,key){
+  if(key==='summary')return 'Professional summary';
+  if(Object.hasOwn(SECTIONS,key))return SECTIONS[key].label;
+  return doc.customFields.find(item=>'custom:'+item.id===key)?.label.trim()||'Untitled custom field';
+}
+function renderSectionOrder(doc){
+  const groups=sectionOrderGroups(doc.sectionOrder,doc.customFields,doc.template);
+  let html=`<section class="form-section"><div class="form-section-header"><div><h3>CV section order</h3><small>Saved for this CV only</small></div><button type="button" class="btn btn-small" data-action="reset-order">Reset order</button></div><p class="field-help">Use the up and down buttons to arrange CV sections. Empty sections stay hidden in the preview. Your name and contact details always stay at the top.${doc.template==='two-column'?' This template keeps its sidebar and main column separate; reorder within each column.':''}</p><div id="section-order-list">`;
+  for(const group of groups){
+    if(groups.length>1)html+=`<h4 class="order-group-heading">${esc(group.label)}</h4>`;
+    html+='<ol class="section-order-list">';
+    group.keys.forEach((key,index)=>{
+      const label=sectionLabel(doc,key);
+      html+=`<li class="section-order-row"><span class="section-order-name" data-order-label="${esc(key)}">${esc(label)}</span><div class="icon-actions"><button type="button" data-action="section-up" data-order-key="${esc(key)}" aria-label="Move ${esc(label)} up" ${index===0?'disabled':''}>↑</button><button type="button" data-action="section-down" data-order-key="${esc(key)}" aria-label="Move ${esc(label)} down" ${index===group.keys.length-1?'disabled':''}>↓</button></div></li>`;
+    });
+    html+='</ol>';
+  }
+  return html+'</div></section>';
+}
+function refreshSectionOrderLabels(doc){
+  for(const node of el('variant-panel').querySelectorAll('[data-order-label]'))node.textContent=sectionLabel(doc,node.dataset.orderLabel);
+  for(const button of el('variant-panel').querySelectorAll('[data-order-key]')){
+    const direction=button.dataset.action==='section-up'?'up':'down';
+    button.setAttribute('aria-label','Move '+sectionLabel(doc,button.dataset.orderKey)+' '+direction);
+  }
+}
 function renderVariant(){
   if(!active){el('variant-panel').innerHTML='';return;}
   const c=active.document;
@@ -232,6 +258,7 @@ function renderVariant(){
     html+=`<div class="entry-card"><div class="entry-card-header"><strong>Custom field</strong><button type="button" class="btn btn-small remove" data-action="remove-custom" data-id="${esc(item.id)}">Remove</button></div><div class="field-grid"><label class="field"><span>Heading</span><input type="text" maxlength="${CUSTOM_LABEL_LIMIT}" data-kind="custom" data-id="${esc(item.id)}" data-key="label" value="${esc(item.label)}" placeholder="e.g. Driving licence"></label><label class="field"><span>Details</span><textarea rows="3" maxlength="${CUSTOM_VALUE_LIMIT}" data-kind="custom" data-id="${esc(item.id)}" data-key="value" placeholder="e.g. Category B">${esc(item.value)}</textarea></label></div></div>`;
   }
   html+='</section>';
+  html+=renderSectionOrder(c);
   el('variant-panel').innerHTML=html;
 }
 function getPreviewCv(){
@@ -519,6 +546,7 @@ el('variant-panel').addEventListener('input',(ev)=>{
  else if(t.dataset.kind==='custom'&&['label','value'].includes(t.dataset.key)){
    const item=active.document.customFields.find(x=>x.id===t.dataset.id);if(!item)return;
    item[t.dataset.key]=t.value.slice(0,t.dataset.key==='label'?CUSTOM_LABEL_LIMIT:CUSTOM_VALUE_LIMIT);
+   if(t.dataset.key==='label')refreshSectionOrderLabels(active.document);
  }
  else return;
  markDirty('cv');renderPreview();
@@ -538,12 +566,25 @@ el('variant-panel').addEventListener('click',async(ev)=>{
  if(!active)return;
  if(b.dataset.action==='add-custom' && active.document.customFields.length<CUSTOM_FIELD_LIMIT){
    active.document.customFields.push({id:makeId(),label:'',value:''});
+   active.document.sectionOrder=normalizeSectionOrder(active.document.sectionOrder,active.document.customFields);
    markDirty('cv');renderVariant();renderPreview();
    const fields=el('variant-panel').querySelectorAll('[data-kind="custom"][data-key="label"]');fields[fields.length-1]?.focus();
  }else if(b.dataset.action==='remove-custom'){
    if(!confirm('Remove this custom field from this CV?'))return;
    active.document.customFields=active.document.customFields.filter(x=>x.id!==b.dataset.id);
+   active.document.sectionOrder=normalizeSectionOrder(active.document.sectionOrder,active.document.customFields);
    markDirty('cv');renderVariant();renderPreview();
+ }else if(['section-up','section-down','reset-order'].includes(b.dataset.action)){
+   const doc=active.document,action=b.dataset.action,key=b.dataset.orderKey;
+   const next=action==='reset-order'?defaultSectionOrder(doc.customFields):moveSection(doc.sectionOrder,doc.customFields,key,action==='section-up'?-1:1,doc.template);
+   if(JSON.stringify(next)===JSON.stringify(doc.sectionOrder))return;
+   doc.sectionOrder=next;
+   markDirty('cv');renderVariant();renderPreview();
+   // Restore keyboard focus after moving an item; fall back to its other enabled arrow.
+   const buttons=Array.from(el('variant-panel').querySelectorAll('[data-action]'));
+   const focus=buttons.find(x=>x.dataset.action===action&&x.dataset.orderKey===key&&!x.disabled)
+     ||buttons.find(x=>key&&x.dataset.orderKey===key&&!x.disabled);
+   focus?.focus({preventScroll:true});
  }else if(b.dataset.action==='save-cv'){
    setBusy(true);try{await autosave.flush();}finally{setBusy(false);}
  }

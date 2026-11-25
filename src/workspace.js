@@ -1,4 +1,4 @@
-import { blankCv, normalizeCv, SECTIONS, makeId, TEMPLATES, PHOTO_TEMPLATES, normalizeCustomFields } from './model.js';
+import { blankCv, normalizeCv, SECTIONS, makeId, TEMPLATES, PHOTO_TEMPLATES, normalizeCustomFields, defaultSectionOrder, normalizeSectionOrder } from './model.js';
 
 const groups = Object.keys(SECTIONS);
 export function cleanMaster(raw) {
@@ -7,17 +7,18 @@ export function cleanMaster(raw) {
 }
 export function newVariant(master, {title='Untitled CV', company='', target_role=''} = {}) {
   return { id: makeId(), title: title.slice(0,120), company: company.slice(0,120), target_role: target_role.slice(0,120),
-    document: {version: 1, headline: '', summary: '', customFields:[], included: Object.fromEntries(groups.map(k=>[k, master[k].map(x=>x.id)])), template:'modern', accent:'#235d80', showPhoto:true, contacts: {email:true,phone:true,address:true,location:true,website:true}} };
+    document: {version: 1, headline: '', summary: '', customFields:[], sectionOrder:defaultSectionOrder(), included: Object.fromEntries(groups.map(k=>[k, master[k].map(x=>x.id)])), template:'modern', accent:'#235d80', showPhoto:true, contacts: {email:true,phone:true,address:true,location:true,website:true}} };
 }
 export function normalizeVariant(row) {
   if (!row || typeof row !== 'object' || !row.document || typeof row.document !== 'object') throw new Error('Invalid CV');
   const doc = row.document;
+  const customFields=normalizeCustomFields(doc.customFields);
   return {
     id: String(row.id||''), title: String(row.title||'Untitled CV').slice(0,120),
     company: String(row.company||'').slice(0,120), target_role: String(row.target_role||'').slice(0,120),
     document: {
       version:1, headline: String(doc.headline||'').slice(0,6000), summary:String(doc.summary||'').slice(0,6000),
-      customFields:normalizeCustomFields(doc.customFields),
+      customFields, sectionOrder:normalizeSectionOrder(doc.sectionOrder,customFields),
       included: Object.fromEntries(groups.map(k=>[k,Array.isArray(doc.included?.[k])?[...new Set(doc.included[k].filter(x=>typeof x==='string').slice(0,100))]:[]])),
       template:Object.hasOwn(TEMPLATES,doc.template)?doc.template:'modern', showPhoto:doc.showPhoto!==false, accent:/^#[0-9a-fA-F]{6}$/.test(doc.accent)?doc.accent:'#235d80',
       contacts: Object.fromEntries(['email','phone','address','location','website'].map(key=>[key,doc.contacts?.[key]!==false]))
@@ -36,6 +37,7 @@ export function composeCv(master,variant) {
   for(const key of ['email','phone','address','location','website']) {if(!v.contacts[key])out.profile[key]='';}
   if(!PHOTO_TEMPLATES.includes(v.template)||!v.showPhoto)out.profile.photo='';
   out.customFields=v.customFields;
+  out.sectionOrder=v.sectionOrder;
   out.settings={template:v.template,accent:v.accent};
   return out;
 }

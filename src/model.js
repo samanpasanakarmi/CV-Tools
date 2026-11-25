@@ -70,9 +70,42 @@ export function normalizeCustomFields(raw) {
 export function visibleCustomFields(raw){
   return normalizeCustomFields(raw).filter(x=>x.label.trim() && x.value.trim());
 }
+export const DEFAULT_SECTION_ORDER=Object.freeze(['summary',...Object.keys(SECTIONS)]);
+export const SIDEBAR_SECTIONS=Object.freeze(['skills','languages','certificates']);
+export function defaultSectionOrder(customFields=[]){
+  return [...DEFAULT_SECTION_ORDER,...customFields.map(item=>'custom:'+item.id)];
+}
+export function normalizeSectionOrder(raw,customFields=[]){
+  const defaults=defaultSectionOrder(customFields);
+  const allowed=new Set(defaults),seen=new Set(),order=[];
+  // Only accept known keys, once each. New sections append; removed keys disappear.
+  for(const key of Array.isArray(raw)?raw.slice(0,100):[]){
+    if(allowed.has(key)&&!seen.has(key)){seen.add(key);order.push(key);}
+  }
+  return [...order,...defaults.filter(key=>!seen.has(key))];
+}
+export function sectionOrderGroups(raw,customFields=[],template='modern'){
+  const order=normalizeSectionOrder(raw,customFields);
+  if(template!=='two-column')return [{label:'Sections',keys:order}];
+  return [
+    {label:'Sidebar',keys:order.filter(key=>SIDEBAR_SECTIONS.includes(key))},
+    {label:'Main column',keys:order.filter(key=>!SIDEBAR_SECTIONS.includes(key))}
+  ];
+}
+export function moveSection(order,customFields,key,direction,template='modern'){
+  const normalized=normalizeSectionOrder(order,customFields);
+  if(direction!==1 && direction!==-1)return normalized;
+  const group=sectionOrderGroups(normalized,customFields,template).find(g=>g.keys.includes(key));
+  if(!group)return normalized;
+  const neighbor=group.keys[group.keys.indexOf(key)+direction];
+  if(!neighbor)return normalized;
+  const i=normalized.indexOf(key),j=normalized.indexOf(neighbor);
+  [normalized[i],normalized[j]]=[normalized[j],normalized[i]];
+  return normalized;
+}
 export function blankCv() {
   return {version:1, profile:Object.fromEntries(profileFields.map(key=>[key,''])),
-    experience:[], education:[], projects:[], skills:[], languages:[], certificates:[], customFields:[],
+    experience:[], education:[], projects:[], skills:[], languages:[], certificates:[], customFields:[], sectionOrder:defaultSectionOrder(),
     settings:{ template:'modern', accent:'#235d80' } };
 }
 export function demoCv() {
@@ -106,6 +139,7 @@ export function normalizeCv(raw) {
     });
   }
   clean.customFields=normalizeCustomFields(raw.customFields);
+  clean.sectionOrder=normalizeSectionOrder(raw.sectionOrder,clean.customFields);
   clean.settings.template = Object.hasOwn(TEMPLATES,raw.settings?.template) ? raw.settings.template : 'modern';
   const accent = raw.settings?.accent;
   clean.settings.accent = typeof accent==='string' && /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#235d80';
@@ -133,10 +167,21 @@ export function escapeHtml(value) {
 }
 export function cvAsText(cv) {
   const p=cv.profile;
-  const lines = [p.name,p.headline,[p.location,p.email,p.phone,p.website].filter(Boolean).join(' | '),'',p.summary,''];
-  for (const [section, meta] of Object.entries(SECTIONS)) {
-    const items = selectedItems(cv,section);
-    if (!items.length) continue;
+  const lines = [p.name,p.headline,[p.location,p.email,p.phone,p.website].filter(Boolean).join(' | '),''];
+  const customFields=normalizeCustomFields(cv.customFields);
+  const custom=new Map(visibleCustomFields(customFields).map(item=>['custom:'+item.id,item]));
+  for(const section of sectionOrderGroups(cv.sectionOrder,customFields,cv.settings?.template).flatMap(g=>g.keys)){
+    if(section==='summary'){
+      if(p.summary?.trim())lines.push('PROFILE',p.summary,'');
+      continue;
+    }
+    if(custom.has(section)){
+      const item=custom.get(section);lines.push(item.label.trim().toUpperCase(),item.value.trim(),'');continue;
+    }
+    if(!Object.hasOwn(SECTIONS,section))continue;
+    const meta=SECTIONS[section];
+    const items=selectedItems(cv,section).filter(item=>meta.fields.some(([key])=>Boolean(item[key]?.trim())));
+    if(!items.length)continue;
     lines.push(meta.label.toUpperCase());
     for (const item of items) {
       lines.push(meta.fields.filter(([field])=>field!=='details').map(([field])=>section==='experience' && (field==='start'||field==='end')? displayDate(item[field]):item[field]).filter(Boolean).join(' — '));
@@ -144,6 +189,5 @@ export function cvAsText(cv) {
       lines.push('');
     }
   }
-  for(const item of visibleCustomFields(cv.customFields))lines.push(item.label.trim().toUpperCase(),item.value.trim(),'');
   return lines.join('\n').trim()+'\n';
 }
