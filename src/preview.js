@@ -1,4 +1,4 @@
-import { SECTIONS, selectedItems, escapeHtml as e, safeHref, displayDate, PHOTO_TEMPLATES, safePhoto, TEMPLATES, visibleCustomFields } from './model.js';
+import { SECTIONS, selectedItems, escapeHtml as e, safeHref, displayDate, PHOTO_TEMPLATES, safePhoto, TEMPLATES, visibleCustomFields, normalizeCustomFields, sectionOrderGroups } from './model.js';
 const nl = value => e(value).replace(/\n/g,'<br>');
 const details = value => {
   if (!value?.trim()) return '';
@@ -27,31 +27,27 @@ export function renderResume(cv) {
   if(p.website) contacts.push(`<span>${link(p.website)}</span>`);
   const picture=PHOTO_TEMPLATES.includes(template) && safePhoto(p.photo)
     ? `<img class="cv-photo" src="${e(p.photo)}" alt="Profile photograph">` : '';
-  let sections=p.summary ? `<section class="cv-section"><h2>Profile</h2><p class="cv-summary">${nl(p.summary)}</p></section>` : '';
-  for (const [section,meta] of Object.entries(SECTIONS)) {
+  const fields=normalizeCustomFields(cv.customFields);
+  const custom=new Map(visibleCustomFields(fields).map(item=>['custom:'+item.id,item]));
+  const groups=sectionOrderGroups(cv.sectionOrder,fields,template);
+  const sectionHtml=section=>{
+    if(section==='summary')return p.summary?.trim()?`<section class="cv-section"><h2>Profile</h2><p class="cv-summary">${nl(p.summary)}</p></section>`:'';
+    if(custom.has(section)){
+      const item=custom.get(section);
+      return `<section class="cv-section"><h2>${e(item.label.trim())}</h2><p class="cv-summary">${nl(item.value.trim())}</p></section>`;
+    }
+    if(!Object.hasOwn(SECTIONS,section))return '';
+    const meta=SECTIONS[section];
     const items=selectedItems(cv,section).filter(item=>meta.fields.some(([key])=>Boolean(item[key]?.trim())));
-    if(!items.length)continue;
-    sections+=`<section class="cv-section"><h2>${e(meta.label)}</h2><div class="cv-section-body ${section==='skills'||section==='languages'?'cv-pills':''}">${items.map(i=>itemHtml(section,i)).join('')}</div></section>`;
-  }
-  const custom=visibleCustomFields(cv.customFields).map(item=>`<section class="cv-section"><h2>${e(item.label.trim())}</h2><p class="cv-summary">${nl(item.value.trim())}</p></section>`).join('');
-  sections+=custom;
+    if(!items.length)return '';
+    return `<section class="cv-section"><h2>${e(meta.label)}</h2><div class="cv-section-body ${section==='skills'||section==='languages'?'cv-pills':''}">${items.map(i=>itemHtml(section,i)).join('')}</div></section>`;
+  };
+  const sections=groups[0].keys.map(sectionHtml).join('');
   const identity=`<div class="cv-identity"><h1>${e(p.name||'Your Name')}</h1><div class="cv-headline">${e(p.headline||'Your professional title')}</div><div class="cv-contact">${contacts.join('')}</div></div>`;
   const empty = '<div class="cv-empty">Fill in your profile to build a professional CV.</div>';
   if (template === 'two-column') {
-    // Reuse the existing CV data and item renderer; only the visual grouping changes.
-    const sidebarSections = ['skills', 'languages', 'certificates'];
-    const summaryHtml = p.summary
-      ? `<section class="cv-section"><h2>Profile</h2><p class="cv-summary">${nl(p.summary)}</p></section>` : '';
-    let sidebar = '';
-    let main = summaryHtml;
-    for (const [section, meta] of Object.entries(SECTIONS)) {
-      const items = selectedItems(cv, section).filter(item=>meta.fields.some(([key])=>Boolean(item[key]?.trim())));
-      if (!items.length) continue;
-      const html = `<section class="cv-section"><h2>${e(meta.label)}</h2><div class="cv-section-body ${section==='skills'||section==='languages'?'cv-pills':''}">${items.map(i=>itemHtml(section,i)).join('')}</div></section>`;
-      if (sidebarSections.includes(section)) sidebar += html;
-      else main += html;
-    }
-    main+=custom;
+    const sidebar=sections;
+    const main=groups[1].keys.map(sectionHtml).join('');
     return `<article class="cv-page two-column" style="--cv-accent:${e(cv.settings.accent)}">
       <header class="cv-heading">${picture}${identity}</header>
       <div class="cv-two-column-body"><aside class="cv-sidebar">${sidebar || empty}</aside><main class="cv-main">${main || empty}</main></div>
