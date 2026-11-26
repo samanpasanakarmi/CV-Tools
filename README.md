@@ -1,56 +1,87 @@
-# CV Studio v0.7 — AI Smart CV Builder (Real Web App)
+# CV Studio
 
-**Newest release:** Builds on v0.6 customer-approved CV Studio. Adds an authenticated Supabase Edge Function using a **server-only OpenAI API key**, job-description tailoring from the signed-in user’s saved profile, an explicit data-processing consent step, and **mandatory human review before saving a separate CV**. No fake-login or offline demo mode.
+A web-based CV management application developed for the Metropolia University of Applied Sciences Multidisciplinary Innovation Project.
 
-**Start here:** [`docs/AI_V07_SETUP.md`](docs/AI_V07_SETUP.md) · [`docs/AI_V07_TEAM_PLAN.md`](docs/AI_V07_TEAM_PLAN.md)
+[![Verify CV Tool](https://github.com/samanpasanakarmi/CV-Tools/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/samanpasanakarmi/CV-Tools/actions/workflows/ci.yml)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES%20modules-F7DF1E)
+![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E)
 
-**Live status:** Code and tests provided; a real Supabase project, quota SQL migration, live Edge Function deployment and OpenAI billing/key are required. Live account isolation and provider calls have **not** been verified here.
+> **Status:** Student project / pre-release. Core features are implemented; public deployment, independent live security verification and customer acceptance remain outstanding. Experimental AI is disabled in the core UI and disabled by default in the supplied Edge Function.
 
----
+## The problem and solution
 
-# CV Studio v0.6 — Real web application
+Job seekers often re-enter the same personal information when preparing CVs for different employers. CV Studio stores one reusable profile and lets users select relevant experience, education and skills, tailor each CV, preview it and export it in several formats. The project prioritizes user control and privacy over automated generation.
 
-Metropolia Multidisciplinary Innovation Project • Customer: Aino Haavisto • Four-person team.
+## Features
 
-**This release builds directly on the v0.5.1 real-only web application. It does not include a fictional login or a demonstration data mode.** Supabase must be configured to use accounts and saved CVs.
+| Area | Current implementation |
+| --- | --- |
+| Account | Email/password registration, login, password recovery and password change via Supabase Auth |
+| Reusable profile | Personal details, work history, education, projects, skills, languages, certifications and optional photo |
+| Tailored CVs | Create, edit, duplicate and delete multiple job-specific CVs; choose individual entries and contact visibility |
+| Appearance | Nine templates, accent colors and optional photo in two templates |
+| Customization | Up to 20 custom heading/text fields per CV, section reordering and reset; two-column template keeps its existing column groups |
+| Saving | Debounced cloud autosave (1.5 seconds), save status, manual Save now, flush on navigation/logout |
+| Export | Browser Print / Save as PDF, TXT, JSON and full account data backup |
+| Privacy controls | Owner-only SQL policies, memory-only sessions, self-service CV/profile erasure (not full account deletion) |
 
-## v0.6 changes requested by Aino (6 November 2026)
+Templates: Modern, Classic, Minimal, Executive, Photo sidebar, Photo header, ATS Clean, Nordic Professional and Modern Two Column. ATS Clean is a layout name, not a guarantee of ATS compatibility.
 
-- **Exact work dates:** Work experience start and end are full calendar dates. They display in CVs and text exports as **DD/MM/YYYY**, e.g. `04/06/2024 – 30/09/2026`. An ongoing job can have `Present` instead of an end date. Impossible dates or end dates before start are rejected when saving the profile. Prior month/year-only strings are preserved and explicitly flagged for completion, not assigned a guessed day.
-- **Simplified dashboard:** Shows a greeting, saved CV count, the latest three CVs, and primary actions. The large right-hand preview is hidden outside the profile/CV editor to reduce clutter.
-- **Six CV templates:** Modern, Classic, Minimal, Executive, Photo sidebar and Photo header. Templates are chosen independently for each CV.
-- **Optional profile picture:** Upload PNG/JPEG/WebP (4 MB input limit), crop and resize locally to a bounded JPEG, and save it within the user's private master profile record. Only the two photo templates display the image, and each CV has its own `Show my saved profile picture` switch. No publicly accessible image bucket or third-party image URL is used.
+## Architecture
 
-The master profile remains reusable across independently customizable job CVs. CV creation, editing, duplication, deletion, PDF printing, TXT/JSON export, password recovery and account data backup remain in place.
-
-## Set up for the real online project
-
-1. Create **your own team-controlled Supabase project** (choose an EU region in consultation with the customer).
-2. Execute `supabase/schema.sql` in Supabase SQL Editor. The data model stores profile and CV JSON, so the new date, image and template fields **do not require a table migration** from v0.5.1.
-3. Configure Email authentication and email confirmation; add local and deployed URLs under **Authentication → URL Configuration**.
-4. Edit `src/config.js` with the **HTTPS Project URL** and **public publishable key only**. **Never add a `service_role` key, `sb_secret` key or password.**
-5. Run `npm start`; open **http://127.0.0.1:4173/** in Chrome or Edge.
-6. With disposable accounts, verify register → sign in → save profile with full dates/photo → create two CVs → choose different templates → export PDF → log out → log back in → data is still there.
-7. Run two-account data isolation tests in `docs/SECURITY_TESTS.md` before inviting real users. Deploy `dist/` over HTTPS through the GitHub Actions workflow after `npm run check` and `npm run build`.
-
-**Commands (Node 20+):**
-
-```bash
-npm start       # local website (requires a configured Supabase project to log in)
-npm run check   # syntax and 38 automated tests
-npm run build   # publishable static files in dist/
+```mermaid
+flowchart LR
+    U[Job seeker] --> B[Browser CV Studio]
+    B -->|Email / password| A[Supabase Auth]
+    B -->|Authenticated REST requests| D[(Postgres: profiles and cvs)]
+    A -.->|User identity / JWT| D
+    B --> E[Local PDF / TXT / JSON export]
+    G[GitHub Actions] -->|Build static assets| H[Static HTTPS host]
+    H --> B
 ```
 
-## Existing data and privacy
+HTML, CSS and native JavaScript modules power the frontend. Node.js runs the local static server and test suite; GitHub Actions verifies changes and builds the static website. Supabase provides authentication and PostgreSQL data storage. Exports are generated in the browser. See [architecture and database design](docs/ARCHITECTURE.md).
 
-Old CVs with `modern` and `classic` styles continue to load. Existing experience dates like `Jan 2024` are not changed or given a fictional day; users need to select full start/end dates in **My Profile → Work experience** before saving updated experience. Updating the reusable profile also updates the information that appears in existing CVs. Photos are part of the JSON profile and are included in a full account backup—handle downloaded backups carefully. Deleting a photo and saving the profile removes it from the saved profile; copies previously exported to PDF/JSON cannot be recalled.
+## Run locally
 
-The supplied SQL implements row-level owner policies, but **live account authentication and cross-account privacy have not been tested against your actual Supabase instance**. A privacy notice, full account-deletion workflow, deployment and customer approval are still needed before launch to the public. This is not a claim of completed security audit or GDPR compliance.
+Prerequisites: Git, Node.js 20+ (CI uses Node 22), and a team-controlled Supabase project for authenticated functionality.
 
-## Documentation
+```bash
+git clone https://github.com/samanpasanakarmi/CV-Tools.git
+cd CV-Tools
+npm run check
+npm start
+```
 
-- `docs/CUSTOMER_FEEDBACK_V06.md` — feedback-to-feature matrix and acceptance checklist
-- `docs/TEAM_WORK_SPLIT_V06.md` — four-member GitHub issue/PR plan
-- `docs/SETUP_SUPABASE.md` — cloud setup
-- `docs/SECURITY_TESTS.md` — live isolation tests
-- `docs/WEB_APP_DEPLOYMENT.md` — GitHub Pages deploy instructions
+Open http://127.0.0.1:4173/. No npm dependency installation is needed for the current package.
+
+For backend setup, follow [Supabase configuration](docs/SETUP_SUPABASE.md). The schema is in [supabase/schema.sql](supabase/schema.sql). Configure only the public project URL and publishable key in src/config.js; never include service-role keys, secrets or passwords. Use disposable accounts and fictional CV information until release gates are satisfied. Local UI connects to the configured cloud database; it is not an offline demo.
+
+```bash
+npm run build
+```
+
+The production build is generated in dist/. See [deployment guide](docs/WEB_APP_DEPLOYMENT.md). A production URL is not yet verified.
+
+## Quality and evidence
+
+The [25 November 2026 main-branch CI run](https://github.com/samanpasanakarmi/CV-Tools/actions/runs/45677502259) passed **57 of 57 automated tests**. The [deployment run](https://github.com/samanpasanakarmi/CV-Tools/actions/runs/45677502125) built successfully, but the Pages deployment step failed. This does not establish live database isolation, browser compatibility or customer acceptance.
+
+- [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md)
+- [Current test plan](docs/TEST_PLAN.md) and [verification evidence](docs/TEST_RESULTS.md)
+- [Live security test procedure](docs/SECURITY_TESTS.md)
+- [Current implementation status and release gates](docs/IMPLEMENTATION_STATUS.md)
+
+## Team development
+
+This is a four-person student project. See [contribution workflow](CONTRIBUTING.md), [team agreement](docs/TEAM_AGREEMENT.md), [contribution evidence guide](docs/TEAM_CONTRIBUTIONS.md), [Issues](https://github.com/samanpasanakarmi/CV-Tools/issues) and [Pull requests](https://github.com/samanpasanakarmi/CV-Tools/pulls). Individual credit and customer approval must be supported by actual team records; they are not inferred from PR authorship.
+
+## Documentation and handover
+
+Start with the [documentation index](docs/README.md), [user guide](docs/USER_GUIDE.md), [changelog](CHANGELOG.md) and [handover checklist](docs/HANDOVER.md). Historical design and sprint records remain in docs/ for traceability.
+
+## Security and known limitations
+
+See [SECURITY.md](SECURITY.md). Live two-account isolation, server-side storage quotas, full authentication-account deletion, privacy/retention arrangements, accessibility and cross-browser acceptance remain release gates. Simultaneous edits across tabs/devices use last-write-wins; offline save and JSON restore are not implemented. AI code is experimental and not verified against a live provider.
+
+No public-use security certification or GDPR compliance claim is made. Ownership and licensing should be agreed with the team and customer before distribution.
