@@ -1,41 +1,34 @@
-> **LEGACY NOTE (23 Oct 2026):** This document describes the original browser-only prototype. Aino has now requested logins, cloud-backed accounts, reusable profiles, and multiple CVs. For current decisions use `CUSTOMER_CONFIRMED_REQUIREMENTS.md`, `FOUR_MEMBER_SPRINT_BACKLOG.md`, and `SETUP_SUPABASE.md`.
+# Current test plan — CV Studio core
 
-# CV Tool verification and QA
+Use fictional personal information and disposable accounts. Test the exact commit, browser, OS and Supabase environment intended for delivery. Record actual results in [TEST_RESULTS.md](TEST_RESULTS.md); a planned test is not a passed test.
 
-## Automated checks
-Run `npm run check` after every meaningful change and before every PR; GitHub Actions repeats these checks.
+## Automated regression
 
-Initial tests cover blank defaults, ordering, normalized JSON import, excluding entries, escaping user input, unsafe URL handling, duplicate IDs, and JSON round-trip.
+Run npm run check and npm run build. CI runs the Node tests on Node 22. These cover model normalization, escaping, dates, auth/API mocks, CV composition, templates, local-server access, autosave and custom section ordering. They do not prove live Supabase security or real PDF layout.
 
-## Manual end-to-end test — use **fictional** example data
+## Manual acceptance cases
 
-| Test | Steps | Expected result | Tester/date |
-| --- | --- | --- | --- |
-| First run | Load app; click Load example | Example CV appears, two-column editor/preview available | |
-| Edit profile | Change name/title/email | Preview updates instantly | |
-| Add record | Add experience; enter all fields | Job appears in preview | |
-| Include/exclude | Uncheck experience checkbox | Job vanishes from preview but stays in editor | |
-| Reorder | Add second job; use arrow buttons | Order changes correctly | |
-| Delete | Remove an entry and confirm | Entry disappears | |
-| Persist | Refresh page | Entered information remains | |
-| JSON export/import | Export JSON; clear; import JSON | Original complete CV is restored, including excluded entries | |
-| TXT export | Export TXT | All included sections appear; hidden entries absent | |
-| PDF | Click Save as PDF; Chrome/Edge Save as PDF | A4 CV only; no editor/sidebar; printable | |
-| Template | Switch Modern/Classic; change color | Layout/heading styles update without losing data | |
-| Unsafe import | Try invalid JSON and v2 JSON | Friendly error, current CV preserved | |
-| Narrow browser | Resize to phone-like width | Forms remain usable; no important controls missing | |
-| Keyboard | Use Tab/Shift+Tab | All inputs, buttons and select are reachable | |
+| ID | Scenario | Expected result |
+| --- | --- | --- |
+| M01 | Register, confirm email, sign in, wrong password | Valid account works; wrong password rejected |
+| M02 | Recover / change password | New password works; old password rejected |
+| M03 | Enter profile, experience dates, optional photo, save, sign out/in | Saved data retained; photo only on allowed templates |
+| M04 | Create two CVs; choose different entries and contacts; edit shared profile | Independent selections; shared profile changes appear in both |
+| M05 | Duplicate and delete one CV | Copy independent; only selected CV deleted |
+| M06 | Type, pause, type during save, reload after saved status | Latest confirmed changes persisted |
+| M07 | Invalid date / empty CV title; offline save; reconnect and Save now | Not-saved state; no false success; retry persists valid data |
+| M08 | Add/edit/remove custom fields; duplicate CV | Complete fields rendered; blank omitted; copy independent |
+| M09 | Reorder standard/custom sections; reset; switch templates | Preview and export follow order; two-column groups preserved |
+| M10 | All nine templates; A4 one- and multi-page PDF | Readable output; no editor controls, clipping or unexpected blank pages |
+| M11 | TXT, JSON, full account backup | Expected included content and order; backup includes all saved data |
+| M12 | Mobile viewport and keyboard navigation | Controls usable, focus visible, no inaccessible actions |
+| M13 | Logout during/after save, refresh, second account | No previous private data visible; session requires login after refresh |
+| M14 | Erase profile/CVs on disposable account | Profile and CVs removed; Auth identity remains |
+| M15 | Live two-account isolation script | All cross-account read/write/delete attempts rejected |
+| M16 | HTTPS staging URL, email redirects, desktop/mobile browsers | Deployment and configured authentication work |
 
-## Known limitations / future backlog
-- Stored in one browser via localStorage only. No multi-device sync.
-- The initial PDF workflow uses browser print, so output appearance can vary by browser/OS.
-- No multiple saved CV variants, authentication, custom section names, drag-and-drop, PDF page numbering or direct DOCX export.
-- A long CV needs manual printing/page-break checks.
-- No independent end-to-end browser automation included in this starter.
-- Accessibility and real customer acceptance have not yet been independently confirmed.
+M15: follow [SECURITY_TESTS.md](SECURITY_TESTS.md), including its destructive-test safeguards. Do not run against real accounts.
 
-## Privacy and handover
-- Do not upload personal resumes or students' private details to GitHub.
-- Screen recordings must use invented data and follow school consent/privacy requirements.
-- Include actual requirements, feature overview, system requirements and user manual at final delivery.
-- The final customer deliverable format must be **agreed with the customer**.
+## Release gates
+
+CI and build pass, M01–M16 evidenced or explicitly resolved, privacy and security risks addressed, customer acceptance and team review recorded. Browser PDF page breaks and accessibility require real testing; do not infer them from DOM markup tests.

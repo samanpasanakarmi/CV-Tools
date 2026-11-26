@@ -1,32 +1,29 @@
-## v0.7 update (6 November 2026)
-Added authenticated AI CV Builder code, human-review workflow, private RLS profile retrieval in Edge Function, daily quota SQL and OpenAI API integration. Unit tests and static build pass. **Live Supabase and OpenAI integrations have not been tested, deployed or verified.** See `docs/AI_V07_SETUP.md`.
+# Implementation status — 26 November 2026
 
----
+Current baseline: main commit 2a4965c87f049c28bca189258528223f9dcd3b65. Earlier implementation status is retained in Git history; see [changelog](../CHANGELOG.md) for milestones.
 
-> Historical v0.4/v0.5 planning notes. For the current real cloud project, start with `README.md` and `docs/REAL_PROJECT_NEXT_STEPS.md`.
+## Implemented in source
 
-# v0.4 status — verified versus pending
+- Real Supabase Auth and cloud-backed master profile / multiple CVs.
+- Nine templates, exact work dates, optional photo, CV-specific selections and contact visibility.
+- Browser PDF, TXT, JSON and full data backup; profile/CV erasure.
+- Core hardening, serialized autosave and status, custom fields, per-CV section order.
+- Experimental AI code retained but core UI disabled; supplied backend defaults to disabled.
 
-## Implemented and tested locally
-- One reusable master profile linked to multiple independent CV variants.
-- Job/company fields and CV-specific headline, summary, template, selected experience, education and skills.
-- Contact-visibility toggles per CV, without altering other CVs.
-- Fictional demo data, dashboard, new-CV form, duplication, deletion, and preview.
-- Browser PDF print UI plus TXT/JSON exports.
-- CloudApi wired to Supabase Auth and PostgREST; SQL migration defines owner-only RLS grants and policies.
-- Automated Node.js tests and static website build. Browser-tested demo workflows include editing, CV isolation, creation, cloning, updates to shared profile, and JSON export.
+## Verified evidence
 
-## Not verified or incomplete
-- **Live Supabase signup/login and actual persistence:** No team project credentials supplied; connection and end-to-end account testing required.
-- **Real cross-user isolation:** SQL rules are written but not deployed and tested against two accounts.
-- Account deletion, reset-password flow, privacy policy, retention controls and formal GDPR/controller agreements.
-- Deployment to a public URL; HTTPS, browser/network security and customer approval.
-- Any guarantee that the project is safe for real personal CV details.
+57 automated tests passed on main on 25 November; production build and artifact upload passed, Pages deployment failed. See [TEST_RESULTS.md](TEST_RESULTS.md). Local success has been reported for the application and autosave/custom fields, without a complete recorded manual run.
 
-## Validation
-Run `npm run check` and `npm run build`. For security, manually test signed-in Account A versus Account B as described in `docs/SETUP_SUPABASE.md`. **Use fictional data until these checks and customer sign-off pass.**
+## Outstanding release gates
 
+- Live two-account isolation, authentication/email checks and server-side data limits.
+- Full account deletion, agreed privacy notice, retention, ownership and incident process.
+- Public HTTPS deployment and redirect configuration.
+- Current PDF, mobile, keyboard/accessibility and cross-browser acceptance.
+- Customer approval and real team contribution records.
+- Review public repository examples and historical evidence for privacy.
+- Branch protection / peer review, release tag and delivery ownership.
 
-## Update for v0.5 (November 4, 2026)
+## Known limits
 
-The original status above pertains to v0.4. Version 0.5 adds account password change, email recovery, confirmation-link callback, full JSON backup and the authenticated CV-data erasure RPC. API unit tests and standalone demo browser walkthrough pass. Live Supabase integration, two-account RLS isolation, email delivery, production account deletion and customer-approved privacy notice are not verified or completed. See `WHAT_CHANGED_V05.md` and `SECURITY_TESTS.md`.
+No offline persistence, concurrent-device conflict resolution, JSON restore, guaranteed ATS compatibility or public-use security certification. Refresh requires login. AI provider calls are not verified and remain outside core delivery.

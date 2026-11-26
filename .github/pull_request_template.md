@@ -1,15 +1,19 @@
 ## Summary
-What changed and why?
+What changed, why, and who benefits?
 
-## Linked task
-Closes #ISSUE_NUMBER
+## Linked issue
+Link the real issue (use Closes #number only when this PR resolves it).
 
 ## Verification
-- [ ] `npm run check` passes
-- [ ] Tested locally (explain which actions)
-- [ ] No personal/customer data added to repository
-- [ ] Screenshot attached if user interface changed
+- [ ] npm run check passes
+- [ ] npm run build passes
+- [ ] Relevant manual tests performed (record actual results below)
+- [ ] No credentials or personal/customer data added
 - [ ] Documentation updated if behavior changed
 
-## Reviewer
-@TEAMMATE_USERNAME
+**Actual evidence (commit, tests, browser/environment, redacted screenshots if relevant):**
+
+**Known limitations / pending checks:**
+
+## Review
+Request a teammate review; resolve feedback before merging. Disclose AI/tool assistance if required by course policy.
