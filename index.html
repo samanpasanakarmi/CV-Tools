@@ -36,6 +36,27 @@
   <div id="dashboard-panel" hidden></div><div id="profile-panel"></div><div id="cvs-panel" hidden></div><div id="variant-panel" hidden></div><div id="ai-panel" hidden></div><div id="account-panel" hidden></div>
   <p class="footer-note">Account data is saved to Supabase and protected by database Row Level Security. Verify access controls before inviting real users.</p>
  </aside>
+
+<!-- CV Completion Indicator START -->
+
+<section id="cv-completion" class="cv-completion no-print" hidden>
+
+  <label for="cv-progress">
+    CV Completion: <strong id="cv-percent">0%</strong>
+  </label>
+
+  <progress id="cv-progress" value="0" max="100"></progress>
+
+  <p id="cv-progress-message">
+    Complete your CV information.
+  </p>
+
+</section>
+
+<!-- CV Completion Indicator END -->
+
+
+
  <main id="preview-pane" class="preview-pane"><div class="preview-toolbar no-print"><div><div class="eyebrow">LIVE PREVIEW</div><h2 id="preview-title">Your CV</h2></div><div class="preview-options"><button id="export-pdf" class="btn btn-primary" type="button">Save PDF</button><button id="export-txt" class="btn" type="button">TXT</button><button id="export-json" class="btn" type="button">JSON</button></div></div><div id="preview" class="preview-stage"></div><p class="preview-help no-print">To export PDF, choose <strong>Save as PDF</strong> in your browser's print dialog. CV information is not sent to a separate PDF service.</p></main>
 </div>
 <dialog id="new-cv-dialog" class="new-cv-dialog no-print" aria-labelledby="new-cv-heading">

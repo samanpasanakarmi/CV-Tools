@@ -17,6 +17,7 @@ export function getPreviewCv(){
 }
 export function renderPreview(){
   const data=getPreviewCv();
+  updateCvCompletion(data);
   el('preview').innerHTML=renderResume(data);
   el('preview-title').textContent=state.screen==='editor'&&state.active?state.active.title:state.screen==='ai'&&state.aiDraft?'AI draft preview (not saved)':'Profile preview';
 }
@@ -49,3 +50,85 @@ export function renderUI(){
 export function renderVariant() {
   renderCvView(state.master, state.active);
 }
+
+
+// ========================================
+// CV COMPLETION INDICATOR START
+// ========================================
+
+export function calculateCompletion(cv) {
+
+  const hasText = value =>
+    typeof value === 'string' && value.trim() !== '';
+
+  const sections = [
+
+    // Personal information
+    hasText(cv.profile.name),
+
+    // Contact information
+    hasText(cv.profile.email) ||
+    hasText(cv.profile.phone),
+
+    // Professional summary
+    hasText(cv.profile.summary),
+
+    // Work experience
+    cv.experience.some(item =>
+      item.include &&
+      hasText(item.role) &&
+      hasText(item.organization)
+    ),
+
+    // Education
+    cv.education.some(item =>
+      item.include &&
+      hasText(item.qualification) &&
+      hasText(item.organization)
+    ),
+
+    // Skills
+    cv.skills.some(item =>
+      item.include &&
+      hasText(item.name)
+    )
+
+  ];
+
+  const completed = sections.filter(Boolean).length;
+
+  return Math.round(completed / sections.length * 100);
+}
+
+
+function updateCvCompletion(cv) {
+
+  const container = el('cv-completion');
+  const progress = el('cv-progress');
+  const label = el('cv-percent');
+  const message = el('cv-progress-message');
+
+  if (!container || !progress || !label || !message) {
+    return;
+  }
+
+  container.hidden =
+    !['profile', 'editor'].includes(state.screen);
+
+  if (container.hidden) return;
+
+  const percentage = calculateCompletion(cv);
+
+  progress.value = percentage;
+
+  label.textContent = `${percentage}%`;
+
+  message.textContent =
+    percentage === 100
+      ? 'All six core CV sections are complete!'
+      : 'Add information to complete your CV.';
+}
+
+// ========================================
+// CV COMPLETION INDICATOR END
+// ========================================
