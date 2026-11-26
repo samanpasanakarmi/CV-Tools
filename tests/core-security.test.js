@@ -38,6 +38,6 @@ test('dev server serves assets but rejects private files and non-read methods',a
 test('core release keeps the AI UI hidden and backend disabled by default',()=>{
   const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
   assert.match(read('index.html'),/id="nav-ai"[^>]*hidden disabled/);
-  assert.match(read('src/app.js'),/const AI_ENABLED = false/);
+  assert.match(read('src/state.js'),/const AI_ENABLED = false/);
   assert.match(read('supabase/functions/ai-tailor-cv/index.ts'),/Deno\.env\.get\('AI_ENABLED'\)!=='true'/);
 });

@@ -84,3 +84,7 @@ sequenceDiagram
 - AI is disabled in the UI and disabled by default in source Edge Function; live deployment/configuration not verified.
 
 See [security verification](../testing/SECURITY_TESTS.md) and [release gates](../project/IMPLEMENTATION_STATUS.md). These are design/source claims, not a live security certification.
+
+## Source organization
+
+The browser entry point registers feature controllers and starts authentication. See [Code walkthrough](CODE_GUIDE.md) for the module map. The local server and production build share an explicit public asset allowlist.

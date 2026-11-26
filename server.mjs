@@ -2,10 +2,10 @@ import { createServer } from 'node:http';
 import { readFile, realpath } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PUBLIC_FILES } from './scripts/public-files.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
-const publicFiles = new Set(['/index.html','/styles.css','/assets/favicon.svg',
-  ...['app','model','preview','api','workspace','config','auth-flow','ai'].map(name=>'/src/'+name+'.js')]);
+const publicFiles = new Set(PUBLIC_FILES.map(file => '/' + file));
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
 const securityHeaders = {'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Cache-Control':'no-store'};
 export function createAppServer(){

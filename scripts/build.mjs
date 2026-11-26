@@ -1,21 +1,17 @@
-// Build a clean static website artifact for GitHub Pages and other static hosts.
-// Only public web assets belong in dist/; private team docs and tests do not.
+// Build only the explicitly allowed public assets, preserving their directories.
 import { mkdir, rm, copyFile, writeFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PUBLIC_FILES } from './public-files.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const out = join(root, 'dist');
 await rm(out, { recursive: true, force: true });
-await mkdir(join(out, 'src'), { recursive: true });
-await mkdir(join(out, 'assets'), { recursive: true });
-
-for (const file of ['index.html', 'styles.css']) {
-  await copyFile(join(root, file), join(out, file));
+await mkdir(out, { recursive: true });
+for (const file of PUBLIC_FILES) {
+  const destination = join(out, file);
+  await mkdir(dirname(destination), { recursive: true });
+  await copyFile(join(root, file), destination);
 }
-for (const file of ['app.js', 'model.js', 'preview.js', 'api.js', 'workspace.js', 'config.js', 'auth-flow.js', 'ai.js']) {
-  await copyFile(join(root, 'src', file), join(out, 'src', file));
-}
-await copyFile(join(root, 'assets', 'favicon.svg'), join(out, 'assets', 'favicon.svg'));
 await writeFile(join(out, '.nojekyll'), '');
 console.log('Static CV Studio web app built successfully in dist/');

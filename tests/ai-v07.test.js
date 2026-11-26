@@ -67,7 +67,8 @@ test('CloudApi calls authenticated function without sending profile or API secre
 test('public build does not contain a server-side OpenAI API key',async()=>{
  const {readFile}=await import('node:fs/promises');
  const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
- const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ const {PUBLIC_FILES}=await import('../scripts/public-files.mjs');
+ const app=(await Promise.all(PUBLIC_FILES.filter(path=>path.endsWith('.js')).map(path=>readFile(new URL('../'+path,import.meta.url),'utf8')))).join('\n');
  assert.ok(html.includes('nav-ai'));
  assert.ok(app.includes('Generate suggestions'));
  assert.ok(!app.includes('OPENAI_API_KEY'));
