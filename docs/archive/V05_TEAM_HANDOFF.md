@@ -1,4 +1,4 @@
-> Historical v0.4/v0.5 planning notes. For the current real cloud project, start with `README.md` and `docs/REAL_PROJECT_NEXT_STEPS.md`.
+> Historical v0.4/v0.5 planning notes. For the current real cloud project, start with `README.md` and `docs/archive/REAL_PROJECT_NEXT_STEPS.md`.
 
 # CV Studio v0.5 — four-person sprint handoff
 
@@ -15,7 +15,7 @@ A verified user can log in, save one reusable profile, create two different CVs 
 | 3: Tailored CVs and export | `src/workspace.js`, `src/preview.js` | selection per CV, templates, print/PDF output |
 | 4: Auth, data & security | `src/api.js`, `src/auth-flow.js`, `supabase/schema.sql` | login, recovery, two-account test, SQL policy reviews |
 
-All members make small feature branches, write tests, and open pull requests. Sensitive code changes need a second reviewer. Follow `docs/GIT_TEAM_GUIDE.md`.
+All members make small feature branches, write tests, and open pull requests. Sensitive code changes need a second reviewer. Follow `docs/archive/GIT_TEAM_GUIDE.md`.
 
 ## Git branch examples
 
@@ -29,7 +29,7 @@ All members make small feature branches, write tests, and open pull requests. Se
 - Record the required daily Scrum (five days/week); upload to team's Metropolia Drive.
 - GitHub Issues: one feature/task with acceptance criteria per person.
 - Show the customer both CVs with the same saved phone number and different skills.
-- Note issues and customer approval in `docs/CUSTOMER_MEETING.md`.
+- Note issues and customer approval in `docs/project/CUSTOMER_MEETING.md`.
 - Mark live Auth and RLS checks **not verified** until they are executed against your own Supabase instance.
 
 ## Suggested issue list

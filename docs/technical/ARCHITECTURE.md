@@ -46,7 +46,7 @@ erDiagram
     }
 ```
 
-Source: [schema.sql](../supabase/schema.sql). Profiles contain shared contact information and reusable entries, including a bounded encoded photo. CV documents store selected entry IDs, template, contact toggles, headline/summary, custom fields and section order. A CV is composed from its owner's current master profile, not a frozen historical snapshot. Both tables reference the Auth user; the CV title has a 1–120 character database check. Owner index and update timestamp triggers are defined.
+Source: [schema.sql](../../supabase/schema.sql). Profiles contain shared contact information and reusable entries, including a bounded encoded photo. CV documents store selected entry IDs, template, contact toggles, headline/summary, custom fields and section order. A CV is composed from its owner's current master profile, not a frozen historical snapshot. Both tables reference the Auth user; the CV title has a 1–120 character database check. Owner index and update timestamp triggers are defined.
 
 The diagram is the core schema; optional experimental AI quota objects are separate and not needed for core use.
 
@@ -83,4 +83,4 @@ sequenceDiagram
 - Autosave serializes writes in one editor; concurrent devices are last-write-wins. No offline persistence.
 - AI is disabled in the UI and disabled by default in source Edge Function; live deployment/configuration not verified.
 
-See [security verification](SECURITY_TESTS.md) and [release gates](IMPLEMENTATION_STATUS.md). These are design/source claims, not a live security certification.
+See [security verification](../testing/SECURITY_TESTS.md) and [release gates](../project/IMPLEMENTATION_STATUS.md). These are design/source claims, not a live security certification.

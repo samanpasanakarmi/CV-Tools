@@ -29,7 +29,7 @@ test('dev server serves assets but rejects private files and non-read methods',a
   const base='http://127.0.0.1:'+server.address().port;
   assert.equal((await fetch(base+'/')).status,200);
   assert.equal((await fetch(base+'/src/app.js')).status,200);
-  for(const path of ['/.git/config','/.env','/package.json','/docs/SECURITY_TESTS.md','/supabase/schema.sql','/src/../package.json']){
+  for(const path of ['/.git/config','/.env','/package.json','/docs/testing/SECURITY_TESTS.md','/supabase/schema.sql','/src/../package.json']){
     assert.equal((await fetch(base+path)).status,404,path);
   }
   assert.equal((await fetch(base+'/',{method:'POST'})).status,405);

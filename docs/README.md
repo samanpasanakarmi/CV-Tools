@@ -1,27 +1,22 @@
 # Documentation index
 
-Use the current guides below first. Older files are retained as project history rather than silently rewritten as if their earlier claims were current.
+Current project documents are organized by purpose. Historical development notes and earlier prototypes are retained separately, not treated as current instructions.
 
-| Topic | Current source |
-| --- | --- |
-| Overview | [Root README](../README.md) |
-| Architecture / database | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| Requirements / customer evidence | [REQUIREMENTS_TRACEABILITY.md](REQUIREMENTS_TRACEABILITY.md), [October requirements](CUSTOMER_CONFIRMED_REQUIREMENTS.md), [November feedback](CUSTOMER_FEEDBACK_V06.md) |
-| Implementation and release gates | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md), [HANDOVER.md](HANDOVER.md) |
-| Setup and use | [SETUP_SUPABASE.md](SETUP_SUPABASE.md), [USER_GUIDE.md](USER_GUIDE.md), [WEB_APP_DEPLOYMENT.md](WEB_APP_DEPLOYMENT.md) |
-| Quality | [TEST_PLAN.md](TEST_PLAN.md), [TEST_RESULTS.md](TEST_RESULTS.md), [SECURITY_TESTS.md](SECURITY_TESTS.md) |
-| Collaboration | [TEAM_CONTRIBUTIONS.md](TEAM_CONTRIBUTIONS.md), [TEAM_AGREEMENT.md](TEAM_AGREEMENT.md), [CONTRIBUTING](../CONTRIBUTING.md) |
-| Release history | [CHANGELOG](../CHANGELOG.md) |
+| Folder | Purpose | Start here |
+| --- | --- | --- |
+| [project/](project/) | Requirements, customer feedback, teamwork, handover | [Requirements traceability](project/REQUIREMENTS_TRACEABILITY.md) · [Implementation status](project/IMPLEMENTATION_STATUS.md) · [Handover](project/HANDOVER.md) |
+| [technical/](technical/) | Architecture, cloud setup and deployment | [Architecture](technical/ARCHITECTURE.md) · [Supabase setup](technical/SETUP_SUPABASE.md) · [Deployment](technical/WEB_APP_DEPLOYMENT.md) |
+| [testing/](testing/) | Current QA and security evidence | [Test plan](testing/TEST_PLAN.md) · [Test results](testing/TEST_RESULTS.md) · [Security tests](testing/SECURITY_TESTS.md) |
+| [user/](user/) | Current end-user instructions | [User guide](user/USER_GUIDE.md) |
+| [archive/](archive/) | Historical sprint plans and feature implementation notes | [Archive index](archive/README.md) |
+| [evidence/](evidence/) | Historical screenshots and export examples | [Evidence index](evidence/README.md) |
 
-## Feature implementation notes
+## Project records
 
-- [Core hardening](CORE_V08_HARDENING.md)
-- [Autosave and custom fields](AUTOSAVE_CUSTOM_FIELDS.md)
-- [Section ordering](CV_SECTION_ORDER.md)
-- [AI experiment setup](AI_V07_SETUP.md) and [AI team plan](AI_V07_TEAM_PLAN.md) — historical / disabled in current core.
+- [Customer requirements](project/CUSTOMER_CONFIRMED_REQUIREMENTS.md) and [feedback](project/CUSTOMER_FEEDBACK_V06.md)
+- [Customer meeting](project/CUSTOMER_MEETING.md) and [design sprint](project/DESIGN_SPRINT.md)
+- [Team agreement](project/TEAM_AGREEMENT.md), [contributions](project/TEAM_CONTRIBUTIONS.md) and [Scrum templates](project/SCRUM_TEMPLATES.md)
 
-## Historical project material
+Root documents: [Project README](../README.md), [Changelog](../CHANGELOG.md), [Contribution guidelines](../CONTRIBUTING.md), [Security policy](../SECURITY.md).
 
-[Project plan](PROJECT_PLAN.md), [Design sprint](DESIGN_SPRINT.md), [Customer meeting](CUSTOMER_MEETING.md), [Four-member sprint backlog](FOUR_MEMBER_SPRINT_BACKLOG.md), [Team work split](TEAM_WORK_SPLIT_V06.md), [Git team guide](GIT_TEAM_GUIDE.md), [Scrum templates](SCRUM_TEMPLATES.md), [Real project next steps](REAL_PROJECT_NEXT_STEPS.md), [v0.5 handoff](V05_TEAM_HANDOFF.md), [v0.4 changes](WHAT_CHANGED_V04.md), [v0.5 changes](WHAT_CHANGED_V05.md).
-
-Some historical documents refer to the original offline prototype, old template counts or plans; they are not the current operating instructions. Existing screenshots, PDF and JSON examples have not been revalidated for current appearance or personal data. Review before reuse or sharing. Keep confidential customer evidence and Scrum recordings in approved private course storage.
+Existing evidence files have not been revalidated for personal information or current appearance. Keep confidential course/customer evidence in approved private storage. Old paths can be recovered from Git history; current links use the organized folders.

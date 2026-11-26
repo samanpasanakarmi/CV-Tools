@@ -25,10 +25,10 @@ Exact work dates, simplified dashboard, six templates and optional photo support
 
 ## v0.5 — authenticated account management (historical)
 
-Email recovery/password change, full backup export and CV-content erasure. See docs/WHAT_CHANGED_V05.md.
+Email recovery/password change, full backup export and CV-content erasure. See docs/archive/WHAT_CHANGED_V05.md.
 
 ## v0.4 — cloud workspace (historical)
 
-Reusable profile, multiple tailored CVs and Supabase API/data model. See docs/WHAT_CHANGED_V04.md.
+Reusable profile, multiple tailored CVs and Supabase API/data model. See docs/archive/WHAT_CHANGED_V04.md.
 
 Earlier version labels reflect existing repository documentation. Confirm tag targets and customer approval before publishing a release.
