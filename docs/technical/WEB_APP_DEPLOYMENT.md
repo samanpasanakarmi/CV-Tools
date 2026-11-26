@@ -4,7 +4,7 @@ GitHub Pages hosts only the static frontend. Supabase handles accounts and cloud
 
 ## Before publishing
 
-Agree with the customer/teacher on public source and demonstration access. Complete [live security verification](SECURITY_TESTS.md) and privacy review before inviting real users. Review repository examples and screenshots for private data. Use disposable test accounts for staging.
+Agree with the customer/teacher on public source and demonstration access. Complete [live security verification](../testing/SECURITY_TESTS.md) and privacy review before inviting real users. Review repository examples and screenshots for private data. Use disposable test accounts for staging.
 
 1. Configure the team Supabase project, apply the core schema and configure email/redirect URLs as in [SETUP_SUPABASE.md](SETUP_SUPABASE.md).
 2. Run npm run check and npm run build.

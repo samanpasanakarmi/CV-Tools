@@ -1,4 +1,4 @@
-> Historical v0.4/v0.5 planning notes. For the current real cloud project, start with `README.md` and `docs/REAL_PROJECT_NEXT_STEPS.md`.
+> Historical v0.4/v0.5 planning notes. For the current real cloud project, start with `README.md` and `docs/archive/REAL_PROJECT_NEXT_STEPS.md`.
 
 # CV Studio v0.4 — Upgrade notes
 

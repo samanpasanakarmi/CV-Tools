@@ -40,7 +40,7 @@ flowchart LR
     H --> B
 ```
 
-HTML, CSS and native JavaScript modules power the frontend. Node.js runs the local static server and test suite; GitHub Actions verifies changes and builds the static website. Supabase provides authentication and PostgreSQL data storage. Exports are generated in the browser. See [architecture and database design](docs/ARCHITECTURE.md).
+HTML, CSS and native JavaScript modules power the frontend. Node.js runs the local static server and test suite; GitHub Actions verifies changes and builds the static website. Supabase provides authentication and PostgreSQL data storage. Exports are generated in the browser. See [architecture and database design](docs/technical/ARCHITECTURE.md).
 
 ## Run locally
 
@@ -55,30 +55,30 @@ npm start
 
 Open http://127.0.0.1:4173/. No npm dependency installation is needed for the current package.
 
-For backend setup, follow [Supabase configuration](docs/SETUP_SUPABASE.md). The schema is in [supabase/schema.sql](supabase/schema.sql). Configure only the public project URL and publishable key in src/config.js; never include service-role keys, secrets or passwords. Use disposable accounts and fictional CV information until release gates are satisfied. Local UI connects to the configured cloud database; it is not an offline demo.
+For backend setup, follow [Supabase configuration](docs/technical/SETUP_SUPABASE.md). The schema is in [supabase/schema.sql](supabase/schema.sql). Configure only the public project URL and publishable key in src/config.js; never include service-role keys, secrets or passwords. Use disposable accounts and fictional CV information until release gates are satisfied. Local UI connects to the configured cloud database; it is not an offline demo.
 
 ```bash
 npm run build
 ```
 
-The production build is generated in dist/. See [deployment guide](docs/WEB_APP_DEPLOYMENT.md). A production URL is not yet verified.
+The production build is generated in dist/. See [deployment guide](docs/technical/WEB_APP_DEPLOYMENT.md). A production URL is not yet verified.
 
 ## Quality and evidence
 
 The [25 November 2026 main-branch CI run](https://github.com/samanpasanakarmi/CV-Tools/actions/runs/45677502259) passed **57 of 57 automated tests**. The [deployment run](https://github.com/samanpasanakarmi/CV-Tools/actions/runs/45677502125) built successfully, but the Pages deployment step failed. This does not establish live database isolation, browser compatibility or customer acceptance.
 
-- [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md)
-- [Current test plan](docs/TEST_PLAN.md) and [verification evidence](docs/TEST_RESULTS.md)
-- [Live security test procedure](docs/SECURITY_TESTS.md)
-- [Current implementation status and release gates](docs/IMPLEMENTATION_STATUS.md)
+- [Requirements traceability](docs/project/REQUIREMENTS_TRACEABILITY.md)
+- [Current test plan](docs/testing/TEST_PLAN.md) and [verification evidence](docs/testing/TEST_RESULTS.md)
+- [Live security test procedure](docs/testing/SECURITY_TESTS.md)
+- [Current implementation status and release gates](docs/project/IMPLEMENTATION_STATUS.md)
 
 ## Team development
 
-This is a four-person student project. See [contribution workflow](CONTRIBUTING.md), [team agreement](docs/TEAM_AGREEMENT.md), [contribution evidence guide](docs/TEAM_CONTRIBUTIONS.md), [Issues](https://github.com/samanpasanakarmi/CV-Tools/issues) and [Pull requests](https://github.com/samanpasanakarmi/CV-Tools/pulls). Individual credit and customer approval must be supported by actual team records; they are not inferred from PR authorship.
+This is a four-person student project. See [contribution workflow](CONTRIBUTING.md), [team agreement](docs/project/TEAM_AGREEMENT.md), [contribution evidence guide](docs/project/TEAM_CONTRIBUTIONS.md), [Issues](https://github.com/samanpasanakarmi/CV-Tools/issues) and [Pull requests](https://github.com/samanpasanakarmi/CV-Tools/pulls). Individual credit and customer approval must be supported by actual team records; they are not inferred from PR authorship.
 
 ## Documentation and handover
 
-Start with the [documentation index](docs/README.md), [user guide](docs/USER_GUIDE.md), [changelog](CHANGELOG.md) and [handover checklist](docs/HANDOVER.md). Historical design and sprint records remain in docs/ for traceability.
+Start with the [documentation index](docs/README.md), [user guide](docs/user/USER_GUIDE.md), [changelog](CHANGELOG.md) and [handover checklist](docs/project/HANDOVER.md). Historical design and sprint records remain in docs/ for traceability.
 
 ## Security and known limitations
 

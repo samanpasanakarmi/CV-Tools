@@ -22,13 +22,13 @@
    ```
 
 5. On GitHub repository **Settings → Collaborators and teams**, invite the other 3 members. Each accepts the invitation.
-6. Create **GitHub Project** board: `Backlog`, `Ready`, `In progress`, `In review`, `Done`; copy backlog from `docs/PROJECT_PLAN.md` to Issues and assign owners.
+6. Create **GitHub Project** board: `Backlog`, `Ready`, `In progress`, `In review`, `Done`; copy backlog from `docs/archive/PROJECT_PLAN.md` to Issues and assign owners.
 7. In **Settings → Rules → Rulesets** (or **Branches**), protect `main`: use pull requests, require **one approving review**, require passing checks if your repository plan supports them, and block force pushes. If unavailable for your repository type/account, follow these rules as a team manually.
 8. Configure CI by checking **Actions → Verify CV Tool** after pushing.
 
 ## Publish the actual web application
 
-The repository includes a GitHub Pages deployment workflow. After the first push, enable it under **Settings → Pages → Source: GitHub Actions**, then check the `Deploy CV Studio website` run in the Actions tab. See [`WEB_APP_DEPLOYMENT.md`](WEB_APP_DEPLOYMENT.md) for full instructions. **Only `main` deploys**; feature branches are developed and reviewed independently.
+The repository includes a GitHub Pages deployment workflow. After the first push, enable it under **Settings → Pages → Source: GitHub Actions**, then check the `Deploy CV Studio website` run in the Actions tab. See [`WEB_APP_DEPLOYMENT.md`](../technical/WEB_APP_DEPLOYMENT.md) for full instructions. **Only `main` deploys**; feature branches are developed and reviewed independently.
 
 ## B. Clone once (Members 2, 3, 4)
 After access is granted:
@@ -115,4 +115,4 @@ Do not force push to `main`, do not commit real CVs or passwords, and do not edi
 - Screenshot and manual verification instructions for visual changes; use fictional data only.
 
 ## G. If you've never used Git before
-Have each member practice on a tiny documentation edit first: edit a sentence in `docs/TEAM_AGREEMENT.md`, make a branch, commit, push, open PR and ask for review. Do **not** all edit the same line at once. This confirms everyone knows the full workflow.
+Have each member practice on a tiny documentation edit first: edit a sentence in `docs/project/TEAM_AGREEMENT.md`, make a branch, commit, push, open PR and ask for review. Do **not** all edit the same line at once. This confirms everyone knows the full workflow.

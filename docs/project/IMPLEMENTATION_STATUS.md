@@ -1,6 +1,6 @@
 # Implementation status — 26 November 2026
 
-Current baseline: main commit 2a4965c87f049c28bca189258528223f9dcd3b65. Earlier implementation status is retained in Git history; see [changelog](../CHANGELOG.md) for milestones.
+Current baseline: main commit 2a4965c87f049c28bca189258528223f9dcd3b65. Earlier implementation status is retained in Git history; see [changelog](../../CHANGELOG.md) for milestones.
 
 ## Implemented in source
 
@@ -12,7 +12,7 @@ Current baseline: main commit 2a4965c87f049c28bca189258528223f9dcd3b65. Earlier 
 
 ## Verified evidence
 
-57 automated tests passed on main on 25 November; production build and artifact upload passed, Pages deployment failed. See [TEST_RESULTS.md](TEST_RESULTS.md). Local success has been reported for the application and autosave/custom fields, without a complete recorded manual run.
+57 automated tests passed on main on 25 November; production build and artifact upload passed, Pages deployment failed. See [TEST_RESULTS.md](../testing/TEST_RESULTS.md). Local success has been reported for the application and autosave/custom fields, without a complete recorded manual run.
 
 ## Outstanding release gates
 

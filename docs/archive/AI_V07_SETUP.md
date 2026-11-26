@@ -3,7 +3,7 @@
 This is an extension of the existing v0.6 web application, not a replacement. The AI Builder calls a **Supabase Edge Function** using the current user session. The function loads only the signed-in user's saved profile through RLS, applies a per-user limit, calls OpenAI using a **server-side** secret, and returns an **unsaved draft** for human review.
 
 ## Requirements
-- Supabase project with email/password authentication and verified RLS. See `docs/SETUP_SUPABASE.md` and `docs/SECURITY_TESTS.md`.
+- Supabase project with email/password authentication and verified RLS. See `docs/technical/SETUP_SUPABASE.md` and `docs/testing/SECURITY_TESTS.md`.
 - Node.js 20+ for the frontend.
 - Supabase CLI and access to deploy functions, or dashboard function deployment support.
 - An OpenAI API key with API billing/credits (a ChatGPT subscription does not automatically cover API requests).

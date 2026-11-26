@@ -40,7 +40,7 @@ Open http://127.0.0.1:4173/ and verify:
 5. Log out, log in again, and verify both CVs and the shared profile remain.
 6. Click **Forgot your password?**, request a link, set a new password, and log in again.
 7. From **Account**, change your password and download a full JSON backup. Be careful: backup contains private data.
-8. Run the live isolation test using two **other, disposable, empty accounts** as described in `docs/SECURITY_TESTS.md`.
+8. Run the live isolation test using two **other, disposable, empty accounts** as described in `docs/testing/SECURITY_TESTS.md`.
 9. Test the erase flow with disposable accounts only. It removes CV content and profile, **not login identity**.
 
 ## 4. Deployment
