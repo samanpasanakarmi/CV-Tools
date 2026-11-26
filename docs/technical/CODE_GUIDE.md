@@ -17,10 +17,38 @@ CV Studio uses browser-native JavaScript modules. No framework, bundler or new d
 | Export | [controllers/export.js](../../src/controllers/export.js) | PDF/TXT/JSON and unsaved-change warning |
 | Views | [ui/](../../src/ui/) | Screen markup and rendering; event handlers live in controllers |
 | Photo | [photo.js](../../src/photo.js) | Validate and resize images |
-| Shared data model | [model.js](../../src/model.js), [workspace.js](../../src/workspace.js) | Normalization, selection, composition and autosave queue |
+| Shared data model | [model.js](../../src/model.js), [model/](../../src/model/), [workspace.js](../../src/workspace.js) | Public model interface, focused model helpers, composition and autosave queue |
 | CV output | [preview.js](../../src/preview.js) | Printable HTML preview |
-| Cloud connection | [api.js](../../src/api.js), [auth-flow.js](../../src/auth-flow.js) | Supabase REST/auth and safe callback parsing |
+| Cloud connection | [api.js](../../src/api.js), [api/](../../src/api/), [auth-flow.js](../../src/auth-flow.js) | Public CloudApi class, focused request/session/data helpers and safe callback parsing |
 | Experimental AI | [controllers/ai.js](../../src/controllers/ai.js), [ui/ai-view.js](../../src/ui/ai-view.js) | Disabled feature; no AI call in core |
+
+## Model and API modules
+
+The root model.js and api.js are intentionally small public interfaces. Existing imports and method calls still work. Follow the files below for the actual implementation.
+
+| Model module | Responsibility |
+| --- | --- |
+| [constants.js](../../src/model/constants.js) | CV field definitions and templates |
+| [validation.js](../../src/model/validation.js) | Date and work history validation |
+| [safety.js](../../src/model/safety.js) | HTML escaping, image and link validation |
+| [ids.js](../../src/model/ids.js) | Record identifiers |
+| [custom-fields.js](../../src/model/custom-fields.js) | Custom field limits and normalization |
+| [section-order.js](../../src/model/section-order.js) | Section order and two-column grouping |
+| [profile.js](../../src/model/profile.js) | Blank CV and normalized documents |
+| [entries.js](../../src/model/entries.js) | Entry creation, movement and selection |
+| [sample.js](../../src/model/sample.js) | Fictional sample for existing tests |
+| [text-export.js](../../src/model/text-export.js) | Plain text CV generation |
+
+| API module | Responsibility |
+| --- | --- |
+| [request.js](../../src/api/request.js) | HTTP requests, headers, timeout and errors |
+| [session.js](../../src/api/session.js) | Session refresh, logout and stale-response checks |
+| [authentication.js](../../src/api/authentication.js) | Registration, login and password flows |
+| [profile-data.js](../../src/api/profile-data.js) | Profile reads, writes and workspace erasure |
+| [cv-data.js](../../src/api/cv-data.js) | CV create, read, update and delete |
+| [ai-data.js](../../src/api/ai-data.js) | Experimental AI endpoint request |
+
+All API helpers receive the same CloudApi object. This keeps the access token, refresh promise and session generation in one place rather than creating independent copies. Requests, paths, authorization, timeouts and database payloads are unchanged. Do not persist credentials in browser storage or bypass owner-only RLS.
 
 ## Follow one edit
 
