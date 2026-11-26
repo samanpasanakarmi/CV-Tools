@@ -10,8 +10,7 @@ Customer: **Aino Haavisto, Metropolia**. The requirements here reflect what the 
 4. Users can make **multiple customized CVs** for different employers/positions and reuse information from previous CVs.
 5. The website must be **secure**, keeping personal information private.
 
-## Original course brief requirements (Lecture 1, page 18)
-
+## Original course brief requirements
 - Store work history and other CV information.
 - Convert information into a visually attractive **PDF CV**.
 - Manage stored data and choose which parts appear in a CV.
