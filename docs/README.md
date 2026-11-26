@@ -20,3 +20,5 @@ Current project documents are organized by purpose. Historical development notes
 Root documents: [Project README](../README.md), [Changelog](../CHANGELOG.md), [Contribution guidelines](../CONTRIBUTING.md), [Security policy](../SECURITY.md).
 
 Existing evidence files have not been revalidated for personal information or current appearance. Keep confidential course/customer evidence in approved private storage. Old paths can be recovered from Git history; current links use the organized folders.
+
+For developers and code reviewers: [Code walkthrough and module map](technical/CODE_GUIDE.md).

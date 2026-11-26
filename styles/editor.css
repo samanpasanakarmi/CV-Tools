@@ -1,0 +1,248 @@
+/* v0.6 customer-approved refinements: simpler workspace, professional CV themes, optional photo. */
+.simple-dashboard {
+  margin:20px 0 12px;
+  border-bottom:1px solid #e7edf1;
+  padding:4px 0 24px
+}
+
+.simple-dashboard .eyebrow {
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:#7290a3;
+  font-weight:800
+}
+
+.simple-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin:12px 0
+}
+
+.simple-top h3 {
+  font-size:25px;
+  letter-spacing:-.8px;
+  margin:0 0 5px;
+  color:#19334a
+}
+
+.simple-top p {
+  margin:0;
+  color:#718594;
+  font-size:12px
+}
+
+.simple-links {
+  display:flex;
+  gap:8px;
+  margin-top:16px
+}
+
+.field input[type=date] {
+  min-height:41px;
+  color:#254052;
+  background:white
+}
+
+.field-help {
+  display:block;
+  color:#7a8996;
+  font-size:10px;
+  line-height:1.4;
+  margin:5px 0
+}
+
+.legacy-warning {
+  display:block;
+  font-size:10px;
+  color:#9a5b18;
+  background:#fff4e0;
+  padding:6px 8px;
+  border-radius:5px
+}
+
+.present-toggle {
+  grid-column:1/-1;
+  margin:0 0 4px
+}
+
+.photo-settings {
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap
+}
+
+.photo-thumb {
+  width:112px;
+  height:112px;
+  object-fit:cover;
+  border-radius:14px;
+  box-shadow:0 3px 16px #1a354329
+}
+
+.photo-empty {
+  display:grid;
+  place-items:center;
+  width:112px;
+  height:112px;
+  border:2px dashed #d7e3ea;
+  border-radius:14px;
+  color:#8ba2b0;
+  font-size:11px;
+  text-align:center;
+  padding:10px;
+  background:#f7fafb
+}
+
+.photo-settings>div:last-child {
+  flex:1;
+  min-width:200px
+}
+
+.photo-settings input[type=file] {
+  font-size:11px;
+  padding:9px!important
+}
+
+.template-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:15px 0 18px
+}
+
+.template-option {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:center;
+  position:relative;
+  text-align:center;
+  border:2px solid #d8e5eb;
+  background:#fff;
+  border-radius:12px;
+  padding:11px 7px;
+  cursor:pointer;
+  min-width:0;
+  transition:border .15s,background .15s
+}
+
+.template-option.chosen {
+  border-color:#176686;
+  background:#eaf7fa
+}
+
+.template-option:hover {
+  border-color:#66a5bc
+}
+
+.template-option input {
+  position:absolute;
+  top:9px;
+  left:8px;
+  accent-color:#176686
+}
+
+.template-option strong {
+  font-size:11px;
+  color:#2f5269
+}
+
+.template-option small {
+  font-size:10px;
+  color:#7c94a0
+}
+
+.template-mini {
+  width:65px;
+  height:76px;
+  position:relative;
+  background:white;
+  border:1px solid #d5e1e7;
+  box-shadow:0 1px 6px #24394b18;
+  border-top:7px solid #23728f;
+  overflow:hidden;
+  padding:10px 7px 6px;
+  display:block
+}
+
+.template-mini b,.template-mini em,.template-mini u,.template-mini i {
+  display:block;
+  height:4px;
+  margin:5px 0;
+  background:#d6e4ed;
+  border-radius:2px
+}
+
+.template-mini b {
+  height:6px;
+  width:76%;
+  background:#7193a3
+}
+
+.template-mini em {
+  width:90%
+}
+
+.template-mini u {
+  width:64%
+}
+
+.template-mini.classic {
+  border-top:1px solid #d5e1e7
+}
+
+.template-mini.classic b {
+  margin:auto;
+  background:#335776
+}
+
+.template-mini.minimal {
+  border-top:2px solid #293b44
+}
+
+.template-mini.minimal b {
+  background:#283e4d;
+  width:50%
+}
+
+.template-mini.executive {
+  border-top:10px solid #163b56
+}
+
+.template-mini.executive b {
+  background:#244e66
+}
+
+.template-mini.photo-sidebar {
+  border:0;
+  border-left:20px solid #205d7c
+}
+
+.template-mini.photo-sidebar i,.template-mini.photo-header i {
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#87b9c9;
+  margin:0 auto 4px
+}
+
+.template-mini.photo-header {
+  border-top:5px solid #1c5879
+}
+
+.template-mini.photo-header i {
+  width:23px;
+  height:23px
+}
+
+.appearance-controls {
+  margin-top:7px;
+  align-items:center
+}
+
+.photo-option {
+  margin:0
+}

@@ -1,0 +1,93 @@
+/* v0.5: account and recovery workflow */
+.text-button {
+  display:inline-block;
+  background:transparent;
+  border:0;
+  color:#176886;
+  font-size:13px;
+  font-weight:750;
+  padding:11px 0;
+  cursor:pointer;
+  text-align:left
+}
+
+.text-button:hover {
+  text-decoration:underline
+}
+
+.full-width {
+  width:100%;
+  padding:12px 14px
+}
+
+.account-section {
+  border:1px solid #dbe6ed;
+  border-radius:13px;
+  padding:20px;
+  margin-top:16px;
+  background:#fff
+}
+
+.account-section h3 {
+  margin:0 0 9px;
+  font-size:17px
+}
+
+.account-section p {
+  color:#587183;
+  font-size:13px;
+  line-height:1.6
+}
+
+.account-email {
+  font-size:13px;
+  font-weight:750;
+  color:#24415c;
+  overflow-wrap:anywhere
+}
+
+.account-form {
+  max-width:430px;
+  display:flex;
+  flex-direction:column;
+  gap:11px
+}
+
+.account-form .field input {
+  font-size:14px;
+  padding:12px
+}
+
+.danger-zone {
+  border-color:#ecc5c5;
+  background:#fffafa
+}
+
+.btn-danger {
+  background:#fff;
+  border:1px solid #bd5555;
+  color:#9b3030
+}
+
+.btn-danger:hover {
+  background:#fff3f3
+}
+
+.account-note {
+  border-radius:8px;
+  padding:12px;
+  background:#eef6fb;
+  color:#366178;
+  font-size:12px;
+  line-height:1.5
+}
+
+.workspace-nav {
+  flex-wrap:wrap
+}
+
+@media(max-width:760px) {
+  .workspace-nav button {
+    min-width:auto
+  }
+}
